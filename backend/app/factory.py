@@ -3,8 +3,6 @@ Flask Application Factory
 
 Creates and configures the Flask application.
 
-Author: Parmanand Gupta
-Project: Smart Attendance
 """
 
 from __future__ import annotations
@@ -14,7 +12,10 @@ from flask import Flask
 from app.core.config import CONFIG_MAP
 from app.core.environment import Environment
 from app.extensions import init_extensions
-from app.core.settings import DEFAULT_ENVIRONMENT
+from app.core.settings import DEFAULT_ENVIRONMENT, API_PREFIX
+from app.core.handlers import register_exception_handlers
+
+from app.modules.common.health import health_bp
 
 
 def create_app() -> Flask:
@@ -43,9 +44,17 @@ def create_app() -> Flask:
     app.config.from_object(config)
 
     # -----------------------------------------------------
-    # Initialize Extensions
+    # Initialize Extensions & Error handlers
     # -----------------------------------------------------
 
     init_extensions(app)
+    register_exception_handlers(app)
+    # -----------------------------------------------------
+    # Blueprint Registrations 
+    # -----------------------------------------------------
 
+    app.register_blueprint(
+        health_bp,
+        url_prefix = API_PREFIX
+    )
     return app
