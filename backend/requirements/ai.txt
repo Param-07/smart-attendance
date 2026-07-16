@@ -1,0 +1,20 @@
+# ==========================================
+# Smart Attendance
+# AI Requirements
+# ==========================================
+
+# Numerical Computing
+numpy==2.2.6
+
+# Image Processing
+opencv-python==4.12.0.88
+Pillow==11.3.0
+
+# Face Recognition
+# insightface==0.7.3
+
+# ONNX Runtime
+# onnxruntime==1.22.1
+
+# Machine Learning Utilities
+scikit-learn==1.7.1
