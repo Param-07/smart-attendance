@@ -14,6 +14,7 @@ from app.core.environment import Environment
 from app.extensions import init_extensions
 from app.core.settings import DEFAULT_ENVIRONMENT, API_PREFIX
 from app.core.handlers import register_exception_handlers
+from app.core.database import test_database_connection
 
 from app.modules.common.health import health_bp
 
@@ -49,6 +50,9 @@ def create_app() -> Flask:
 
     init_extensions(app)
     register_exception_handlers(app)
+    if app.config.get("SQLALCHEMY_DATABASE_URI"):
+        with app.app_context():
+            test_database_connection()
     # -----------------------------------------------------
     # Blueprint Registrations 
     # -----------------------------------------------------
