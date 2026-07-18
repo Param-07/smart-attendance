@@ -6,8 +6,6 @@ Initializes all third-party Flask extensions.
 The extensions are created here but are not bound to the
 Flask application until create_app() is called.
 
-Author: Parmanand Gupta
-Project: Smart Attendance
 """
 
 from flask_bcrypt import Bcrypt
@@ -15,38 +13,20 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-
-# ==========================================================
-# Database
-# ==========================================================
+from flask import Flask
 
 db = SQLAlchemy()
 
-# ==========================================================
-# Database Migration
-# ==========================================================
-
 migrate = Migrate()
-
-# ==========================================================
-# Authentication
-# ==========================================================
 
 jwt = JWTManager()
 
 bcrypt = Bcrypt()
 
-# ==========================================================
-# Cross-Origin Resource Sharing
-# ==========================================================
-
 cors = CORS()
 
-# ==========================================================
-# Extension Initialization
-# ==========================================================
 
-def init_extensions(app):
+def init_extensions(app: Flask) -> None:
     """
     Initialize all Flask extensions.
     """

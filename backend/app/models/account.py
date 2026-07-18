@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, Enum, Integer, String, text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import AccountStatus, UserRole
 from app.models.base_model import BaseModel
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from app.models.teacher import Teacher
 
 class Account(BaseModel):
     """
@@ -28,7 +31,7 @@ class Account(BaseModel):
     )
 
     password_hash: Mapped[str] = mapped_column(
-        Text,
+        String(255),
         nullable=False,
     )
 
@@ -49,11 +52,13 @@ class Account(BaseModel):
         Integer,
         default=0,
         nullable=False,
+        server_default="0"
     )
 
     password_reset_required: Mapped[bool] = mapped_column(
         default=True,
         nullable=False,
+        server_default=text("true")
     )
 
     last_login: Mapped[datetime | None] = mapped_column(
@@ -75,3 +80,21 @@ class Account(BaseModel):
         DateTime(timezone=True),
         nullable=True,
     )
+
+    teacher: Mapped["Teacher"] = relationship(
+        "Teacher",
+        back_populates="account",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
+    def to_dict(self) -> dict:
+        data = super().to_dict()
+        data.update({
+            "username": self.username,
+            "role": self.role.value,
+            "account_status": self.account_status.value,
+            "password_reset_required": self.password_reset_required,
+            "last_login": self.last_login.isoformat() if self.last_login else None,
+        })
+        return data

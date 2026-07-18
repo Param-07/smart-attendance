@@ -49,6 +49,8 @@ def create_app() -> Flask:
     # -----------------------------------------------------
 
     init_extensions(app)
+    from app import models
+    
     register_exception_handlers(app)
     if app.config.get("SQLALCHEMY_DATABASE_URI"):
         with app.app_context():

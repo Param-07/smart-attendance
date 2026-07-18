@@ -17,8 +17,9 @@ from sqlalchemy import (
     ForeignKey,
     String,
     Text,
+    text
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import (
     Department,
@@ -26,7 +27,10 @@ from app.core.enums import (
     EmploymentStatus,
 )
 from app.models.base_model import BaseModel
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from app.models.account import Account
 
 class Teacher(BaseModel):
 
@@ -35,7 +39,8 @@ class Teacher(BaseModel):
     # Account
 
     account_id: Mapped[int] = mapped_column(
-        ForeignKey("accounts.id"),
+        ForeignKey("accounts.id",
+                   ondelete="CASCADE"),
         unique=True,
         nullable=False,
     )
@@ -113,6 +118,7 @@ class Teacher(BaseModel):
         Boolean,
         default=False,
         nullable=False,
+        server_default=text("false")
     )
 
     # Remarks
@@ -121,3 +127,27 @@ class Teacher(BaseModel):
         Text,
         nullable=True,
     )
+
+    account: Mapped["Account"] = relationship(
+        "Account",
+        back_populates = "teacher"
+    )
+
+    def to_dict(self) -> dict:
+        data = super().to_dict()
+        data.update({
+            "employee_code": self.employee_code,
+            "first_name": self.first_name,
+            "middle_name": self.middle_name,
+            "last_name": self.last_name,
+            "display_name": self.display_name,
+            "official_email": self.official_email,
+            "mobile_number": self.mobile_number,
+            "department": self.department.value,
+            "designation": self.designation.value,
+            "employment_status": self.employment_status.value,
+            "joining_date": self.joining_date.isoformat() if self.joining_date else None,
+            "face_registered": self.face_registered,
+            "remarks": self.remarks,
+        })
+        return data
