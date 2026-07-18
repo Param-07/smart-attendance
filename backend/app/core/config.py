@@ -15,6 +15,7 @@ from app.core.settings import (
     APP_NAME,
     APP_VERSION,
 )
+from datetime import timedelta
 
 
 class BaseConfig:
@@ -36,6 +37,12 @@ class BaseConfig:
     # --------------------------------------------------
 
     JWT_SECRET_KEY = Environment.require("JWT_SECRET_KEY")
+    
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
+
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
+
+    JWT_ALGORITHM = "HS256"
 
     # --------------------------------------------------
     # Database

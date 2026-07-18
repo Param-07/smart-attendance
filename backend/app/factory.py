@@ -17,6 +17,8 @@ from app.core.handlers import register_exception_handlers
 from app.core.database import test_database_connection
 
 from app.modules.common.health import health_bp
+from app.modules.authentication.routes import auth_bp
+from app.cli.seed import create_admin
 
 
 def create_app() -> Flask:
@@ -25,6 +27,7 @@ def create_app() -> Flask:
     """
 
     app = Flask(__name__)
+    app.cli.add_command(create_admin)
 
     # -----------------------------------------------------
     # Load Configuration
@@ -62,5 +65,9 @@ def create_app() -> Flask:
     app.register_blueprint(
         health_bp,
         url_prefix = API_PREFIX
+    )
+    app.register_blueprint(
+        auth_bp,
+        url_prefix = API_PREFIX + "/auth"
     )
     return app
