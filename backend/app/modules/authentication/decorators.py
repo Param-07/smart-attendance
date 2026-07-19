@@ -22,7 +22,7 @@ def roles_required(*roles: UserRole):
     Ensures the authenticated user has one of the required roles.
     """
     def decorator(fn):
-        @wraps(*roles)
+        @wraps(fn)
         def wrapper(*args, **kwargs):
             claims = get_jwt()
             user_role = claims.get("role")

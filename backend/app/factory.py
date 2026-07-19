@@ -18,6 +18,7 @@ from app.core.database import test_database_connection
 
 from app.modules.common.health import health_bp
 from app.modules.authentication.routes import auth_bp
+from app.modules.teacher.routes import teacher_bp
 from app.cli.seed import create_admin
 
 
@@ -69,5 +70,9 @@ def create_app() -> Flask:
     app.register_blueprint(
         auth_bp,
         url_prefix = API_PREFIX + "/auth"
+    )
+    app.register_blueprint(
+        teacher_bp,
+        url_prefix = API_PREFIX + "/teachers"
     )
     return app

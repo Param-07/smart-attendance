@@ -9,6 +9,11 @@ class AccountStatus(str, Enum):
     LOCKED = "LOCKED"
     DISABLED = "DISABLED"
 
+class Gender(str, Enum):
+    MALE = "Male"
+    FEMALE = "Female"
+    OTHERS = "Others"
+    
 class Department(str, Enum):
     ADMINISTRATION = "Administration"
     MATHEMATICS = "Mathematics"
