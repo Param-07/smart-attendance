@@ -68,6 +68,7 @@ class TeacherCreateRequestSchema(Schema):
 
 class TeacherUpdateRequestSchema(Schema):
 
+    employee_code = fields.String()
     first_name = fields.String()
 
     middle_name = fields.String(
@@ -127,3 +128,7 @@ class TeacherListRequestSchema(Schema):
         load_default="desc",
         validate=validate.OneOf(["asc", "desc"]),
     )
+
+class TeacherActivationRequestSchema(Schema):
+
+    is_active = fields.Boolean(required=True)

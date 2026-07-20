@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import or_
+from sqlalchemy import or_, case, func
 
 from app.extensions import db
 from app.models.teacher import Teacher
@@ -138,3 +138,57 @@ class TeacherRepository(BaseRepository[Teacher]):
             page_size=page_size,
             total_records=total_records,
         )
+    
+    def get_statistics(self):
+
+        stats = (
+            db.session.query(
+                func.count(Teacher.id).label("total_teachers"),
+
+                func.sum(
+                    case(
+                        (Teacher.is_active.is_(True), 1),
+                        else_=0
+                    )
+                ).label("active_teachers"),
+
+                func.sum(
+                    case(
+                        (Teacher.is_active.is_(False), 1),
+                        else_= 0
+                    )
+                ).label("inactive_teachers"),
+
+                func.sum(
+                    case(
+                        (Teacher.face_registered.is_(True), 1),
+                        else_=0,
+                    )
+                ).label("face_registered"),
+
+                func.sum(
+                    case(
+                        (Teacher.face_registered.is_(False), 1),
+                        else_=0,
+                    )
+                ).label("face_not_registered")
+            ).one()
+        )
+
+        return {
+            "total_teachers": stats.total_teachers,
+            "active_teachers": stats.active_teachers or 0,
+            "inactive_teachers": stats.inactive_teachers or 0,
+            "face_registered": stats.face_registered or 0,
+            "face_not_registered": stats.face_not_registered or 0,
+        }
+    
+    def update_activation(
+        self,
+        teacher: Teacher,
+        is_active: bool,
+    ):
+
+        teacher.is_active = is_active
+
+        self.commit()

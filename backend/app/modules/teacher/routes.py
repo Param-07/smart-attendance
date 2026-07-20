@@ -33,3 +33,13 @@ teacher_bp.route(
     "/<string:public_uuid>",
     methods = ["DELETE"]
 )(teacher_controller.delete_teacher)
+
+teacher_bp.route(
+    "/statistics",
+    methods = ["GET"]
+)(teacher_controller.get_statsistics)
+
+teacher_bp.route(
+    "/<string:public_uuid>/activation",
+    methods=["PATCH"],
+)(teacher_controller.update_activation)

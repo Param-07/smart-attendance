@@ -29,3 +29,11 @@ class TeacherListResponseSchema(Schema):
     designation = fields.String()
     employment_status = fields.String()
     face_registered = fields.Boolean()
+
+class TeacherStatisticsResponseSchema(Schema):
+
+    total_teachers = fields.Integer()
+    active_teachers = fields.Integer()
+    inactive_teachers = fields.Integer()
+    face_registered = fields.Integer()
+    face_not_registered = fields.Integer()

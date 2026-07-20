@@ -88,7 +88,7 @@ class TeacherService:
     def delete_teacher(self, public_uuid: str) -> None:
 
         teacher = self.teacher_repository.get_by_public_uuid(public_uuid)
-        teacher.is_active(False)
+        teacher.is_active = False
         self.teacher_repository.commit()
 
     def update_teacher(self, public_uuid: str, data: dict) -> Teacher:
@@ -124,5 +124,25 @@ class TeacherService:
 
         return teacher
     
+    def get_stats(self):
+
+        return self.teacher_repository.get_statistics()
+    
+    def update_activation(
+        self,
+        public_uuid: str,
+        is_active: bool,
+    ):
+
+        teacher = self.teacher_repository.get_by_public_uuid(public_uuid)
+
+        if teacher is None:
+            raise TeacherNotFoundException()
+
+        teacher.is_active = is_active
+
+        self.teacher_repository.commit()
+
+        return teacher
 
     
