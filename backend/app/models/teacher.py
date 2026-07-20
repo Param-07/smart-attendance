@@ -26,11 +26,12 @@ from app.core.enums import (
     Designation,
     EmploymentStatus,
 )
-from app.models.base_model import BaseModel
+from app.models import BaseModel
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.account import Account
+    from app.models import Attendance
 
 class Teacher(BaseModel):
 
@@ -132,6 +133,12 @@ class Teacher(BaseModel):
         "Account",
         back_populates = "teacher"
     )
+
+    attendances: Mapped[list["Attendance"]] = relationship(
+    "Attendance",
+    back_populates="teacher",
+    lazy="select",
+)
 
     def to_dict(self) -> dict:
         data = super().to_dict()

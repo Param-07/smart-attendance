@@ -2,8 +2,7 @@ from sqlalchemy import or_
 
 from .repository import TeacherRepository
 from app.extensions import bcrypt
-from app.models import Account
-from app.models import Teacher
+from app.models import Account, Teacher
 from app.core.enums import UserRole
 from app.core.pagination import PaginationResult
 from app.modules.common.database.base_repository import BaseRepository

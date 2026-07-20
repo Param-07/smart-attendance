@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import or_, case, func
 
 from app.extensions import db
-from app.models.teacher import Teacher
+from app.models import Teacher
 from app.core.pagination import PaginationResult
 from app.modules.common.database.base_repository import BaseRepository
 
