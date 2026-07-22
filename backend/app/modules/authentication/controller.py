@@ -4,7 +4,7 @@ from app.core.responses import ApiResponse
 from .schemas.request import LoginRequestSchema
 from .schemas.response import LoginResponseSchema, CurrentUserResponseSchema, RefreshTokenResponseSchema
 from .service import AuthService
-from .decorators import auth_required, roles_required, refresh_required
+from .decorators import auth_required, refresh_required
 
 class AuthController:
 
