@@ -1,6 +1,7 @@
+from __future__ import annotations
 from datetime import date
 
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 from app.extensions import db
 from app.modules.common.database.base_repository import BaseRepository
@@ -97,3 +98,87 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
             page_size=page_size,
             total_records=total_records,
         )
+
+    def get_by_public_uuid(self, public_uuid: str)-> (Attendance | None):
+
+        return (
+            db.session.query(Attendance)
+                .filter(
+                    Attendance.public_uuid == public_uuid
+                )
+                .first()
+        )
+
+    def update_attendance(
+        self,
+        attendance: Attendance,
+    ) -> Attendance:
+
+        db.session.commit()
+
+        return attendance
+
+    def get_attendance_statistics(self) -> dict:
+
+        today = date.today()
+
+        total_teachers = (
+                            db.session.query(func.count(Teacher.id))
+                            .filter(
+                                Teacher.is_active.is_(True)
+                            )
+                            .scalar()
+                        )
+
+        base_query  = db.session.query(Attendance).filter(
+                            Attendance.attendance_date == today
+                        )
+
+        present = (
+                    base_query 
+                    .with_entities(Attendance.teacher_id)
+                    .distinct()
+                    .count()
+                )
+
+        completed = (
+                        base_query .filter(
+                            Attendance.status.in_(
+                                [
+                                    AttendanceStatus.COMPLETED,
+                                    AttendanceStatus.CORRECTED,
+                                ]
+                            )
+                        )
+                        .with_entities(Attendance.teacher_id)
+                        .distinct()
+                        .count()
+                    )
+
+        pending_checkout = (
+                                base_query .filter(
+                                    Attendance.status == AttendanceStatus.OPEN
+                                )
+                                .with_entities(Attendance.teacher_id)
+                                .distinct()
+                                .count()
+                            )
+
+        absent = max(total_teachers - present, 0)
+
+        attendance_percentage = 0.0
+
+        if total_teachers > 0:
+            attendance_percentage = round(
+                (present / total_teachers) * 100,
+                2,
+            )
+
+        return {
+            "total_teachers": total_teachers,
+            "present": present,
+            "absent": absent,
+            "completed": completed,
+            "pending_checkout": pending_checkout,
+            "attendance_percentage": attendance_percentage,
+        }

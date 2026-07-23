@@ -76,3 +76,30 @@ class AttendanceListRequestSchema(Schema):
         load_default="desc",
         validate=validate.OneOf(["asc", "desc"]),
     )
+
+class AttendanceCorrectionRequestSchema(Schema):
+
+    check_in_time = fields.DateTime(
+        load_default=None,
+        allow_none=True,
+    )
+
+    check_out_time = fields.DateTime(
+        load_default=None,
+        allow_none=True,
+    )
+
+    remarks = fields.String(
+        required=True,
+        validate=validate.Length(max=500),
+    )
+
+class AttendanceStatisticsRequestSchema(Schema):
+
+    start_date = fields.Date(
+        load_default=None
+    )
+
+    end_date = fields.Date(
+        load_default=None
+    )
