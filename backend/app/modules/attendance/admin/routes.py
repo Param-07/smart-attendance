@@ -28,3 +28,8 @@ attendance_admin_bp.route(
     "/statistics",
     methods=["GET"],
 )(controller.get_attendance_stats)
+
+attendance_admin_bp.route(
+    "/report",
+    methods=["GET"],
+)(controller.get_attendance_report)

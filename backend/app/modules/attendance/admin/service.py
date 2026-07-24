@@ -121,3 +121,78 @@ class AdminAttendanceService:
     def get_attendance_statistics(self):
 
         return self.attendance_repository.get_attendance_statistics()
+
+    def get_attendance_report(
+        self,
+        *,
+        teacher_public_uuid: str | None = None,
+        search: str | None = None,
+        status: AttendanceStatus | None = None,
+        start_date: date,
+        end_date: date,
+        page: int = 1,
+        page_size: int = 20,
+        sort_by: str = "attendance_date",
+        order: str = "desc",
+    ) -> PaginationResult[Attendance]:
+
+        if start_date > end_date:
+            raise ValidationException("Start date cannot be later than end date.")
+
+        teacher_id = None
+
+        if teacher_public_uuid is not None:
+            teacher_id = self._get_teacher_id(teacher_public_uuid)
+
+        return self.attendance_repository.get_attendance_report(
+            teacher_id=teacher_id,
+            search=search,
+            status=status,
+            start_date=start_date,
+            end_date=end_date,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            order=order,
+        )
+
+    def get_attendance_report_export(
+        self,
+        *,
+        teacher_public_uuid: str | None = None,
+        search: str | None = None,
+        status: AttendanceStatus | None = None,
+        start_date: date,
+        end_date: date,
+        sort_by: str = "attendance_date",
+        order: str = "desc",
+    ) -> list[Attendance]:
+        
+        if start_date > end_date:
+            raise ValidationException("Start date cannot be later than end date.")
+        
+        teacher_id = None
+        
+        if teacher_public_uuid is not None:
+            teacher_id = self._get_teacher_id(teacher_public_uuid)
+        
+        return self.attendance_repository.get_attendance_report_export(
+            teacher_id=teacher_id,
+            search=search,
+            status=status,
+            start_date=start_date,
+            end_date=end_date,
+            sort_by=sort_by,
+            order=order,
+        )
+
+    # Helper methods
+
+    def _get_teacher_id(self, public_uuid: str) -> int:
+
+        teacher = self.teacher_repository.get_by_public_uuid(public_uuid)
+
+        if teacher is None:
+            raise TeacherNotFoundException()
+
+        return teacher.id

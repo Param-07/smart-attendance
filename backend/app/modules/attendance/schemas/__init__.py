@@ -8,5 +8,6 @@ __all__ = [
     "AttendanceResponseSchema",
     "AttendanceCorrectionRequestSchema",
     "AttendanceStatisticsRequestSchema",
-    "AttendanceStatisticsResponseSchema"
+    "AttendanceStatisticsResponseSchema",
+    "AttendanceReportRequestSchema"
 ]

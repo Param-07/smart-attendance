@@ -103,3 +103,43 @@ class AttendanceStatisticsRequestSchema(Schema):
     end_date = fields.Date(
         load_default=None
     )
+
+class AttendanceReportRequestSchema(Schema):
+
+    teacher_public_uuid = fields.UUID(
+        load_default=None
+    )
+
+    search = fields.String(
+        load_default=None
+    )
+
+    status = fields.Enum(
+        AttendanceStatus,
+        by_value=True,
+        load_default=None,
+    )
+
+    start_date = fields.Date(
+        required=True,
+    )
+
+    end_date = fields.Date(
+        required=True,
+    )
+
+    page = fields.Integer(
+        load_default=1,
+    )
+
+    page_size = fields.Integer(
+        load_default=20,
+    )
+
+    sort_by = fields.String(
+        load_default="attendance_date",
+    )
+
+    order = fields.String(
+        load_default="desc",
+    )
