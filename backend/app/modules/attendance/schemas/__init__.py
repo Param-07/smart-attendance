@@ -5,5 +5,9 @@ __all__ = [
     "AttendanceListRequestSchema",
     "AttendanceCheckInRequestSchema",
     "AttendanceCheckOutRequestSchema",
-    "AttendanceResponseSchema"
+    "AttendanceResponseSchema",
+    "AttendanceCorrectionRequestSchema",
+    "AttendanceStatisticsRequestSchema",
+    "AttendanceStatisticsResponseSchema",
+    "AttendanceReportRequestSchema"
 ]

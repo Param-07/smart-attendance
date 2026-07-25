@@ -52,5 +52,13 @@ class AttendanceResponseSchema(Schema):
     )
 
     created_at = fields.DateTime(dump_only=True)
-
     updated_at = fields.DateTime(dump_only=True)
+
+class AttendanceStatisticsResponseSchema(Schema):
+
+    total_teachers = fields.Integer()
+    present = fields.Integer()
+    absent = fields.Integer()
+    completed = fields.Integer()
+    pending_checkout = fields.Integer()
+    attendance_percentage = fields.Float()
