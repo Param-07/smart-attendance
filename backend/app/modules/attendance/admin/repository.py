@@ -19,8 +19,8 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
         "created_at": Attendance.created_at,
     }
 
-    def __init__(self, model):
-        super().__init__(model)
+    def __init__(self):
+        super().__init__(Attendance)
 
     SORTABLE_COLUMNS = {
         "attendance_date": Attendance.attendance_date,
