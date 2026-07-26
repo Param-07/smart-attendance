@@ -14,6 +14,9 @@ from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
+from supabase import create_client, Client
+
+from app.core.config import BaseConfig
 
 db = SQLAlchemy()
 
@@ -24,6 +27,11 @@ jwt = JWTManager()
 bcrypt = Bcrypt()
 
 cors = CORS()
+
+supabase: Client = create_client(
+    BaseConfig.SUPABASE_URL,
+    BaseConfig.SUPABASE_SERVICE_KEY,
+)
 
 
 def init_extensions(app: Flask) -> None:

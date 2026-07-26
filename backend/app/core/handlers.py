@@ -1,7 +1,7 @@
 from __future__ import annotations
 from marshmallow import ValidationError
 
-from flask import Flask
+from flask import Flask, current_app
 
 from app.core.exceptions import AppException
 from app.core.responses import ApiResponse
@@ -33,5 +33,5 @@ def register_exception_handlers(app: Flask) -> None:
     def handle_unexpected_exception(error: Exception):
 
         return ApiResponse.internal_server_error(
-            message= str(error)
+            message=str(error) if current_app.debug else "An unexpected error occurred."
         )

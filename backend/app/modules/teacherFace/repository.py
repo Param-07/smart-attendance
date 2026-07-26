@@ -2,10 +2,10 @@ from ..common.database.base_repository import BaseRepository
 from app.models import TeacherFace
 from ...extensions import db
 
-class TeacherFaceReopsitory(BaseRepository[TeacherFace]):
+class TeacherFaceRepository(BaseRepository[TeacherFace]):
 
-    def __init__(self, model):
-        super().__init__(model)
+    def __init__(self):
+        super().__init__(TeacherFace)
 
     def get_active_face(self, teacher_id: int) -> TeacherFace | None:
 
@@ -30,18 +30,12 @@ class TeacherFaceReopsitory(BaseRepository[TeacherFace]):
     def has_active_face(self, teacher_id: int) -> bool:
 
         return (
-            db.session.query(TeacherFace)
-                .filter(
-                    TeacherFace.teacher_id == teacher_id,
-                    TeacherFace.is_active.is_(True)
-                )
-                .first()
+            self.get_active_face(teacher_id)
             is not None
         )
 
-    def deactvate_active_face(self, teacher_id: int) -> int:
-
-        return (
+    def deactivate_active_face(self, teacher_id: int) -> int:
+        updated = (
             db.session.query(TeacherFace)
                 .filter(
                     TeacherFace.teacher_id == teacher_id,
@@ -54,3 +48,7 @@ class TeacherFaceReopsitory(BaseRepository[TeacherFace]):
                     synchronize_session= False
                 )
         )
+
+        db.session.flush()
+        
+        return updated

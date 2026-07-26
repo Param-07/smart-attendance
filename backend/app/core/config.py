@@ -56,6 +56,10 @@ class BaseConfig:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    SUPABASE_URL = Environment.get("SUPABASE_URL")
+
+    SUPABASE_SERVICE_ROLE_KEY = Environment.get("SUPABASE_SERVICE_ROLE_KEY")
+
     # --------------------------------------------------
     # Upload
     # --------------------------------------------------

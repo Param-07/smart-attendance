@@ -1,7 +1,24 @@
 import cv2
 import numpy as np
 
+from werkzeug.datastructures import FileStorage
+
 class ImageUtils:
+
+    @staticmethod
+    def read_uploaded_image(file_storage: FileStorage) -> np.ndarray:
+
+        file_bytes = file_storage.stream.read()
+        file_storage.stream.seek(0)   # Reset stream position
+
+        image = cv2.imdecode(
+            np.frombuffer(file_bytes, np.uint8),
+            cv2.IMREAD_COLOR,
+        )
+
+        ImageUtils.validate_image(image)
+
+        return image
 
     @staticmethod
     def read_image(image_path: str) -> np.ndarray:
