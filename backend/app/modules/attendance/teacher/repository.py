@@ -14,6 +14,7 @@ class TeacherAttendanceRepository(BaseRepository[Attendance]):
         "attendance_date": Attendance.attendance_date,
         "check_in_time": Attendance.check_in_time,
         "check_out_time": Attendance.check_out_time,
+        "status": Attendance.status,
         "created_at": Attendance.created_at,
     }
 
@@ -33,6 +34,28 @@ class TeacherAttendanceRepository(BaseRepository[Attendance]):
             .first()
         )
 
+    def has_checked_in_today(
+            self,
+            teacher_id: int
+    ) -> bool:
+
+        return (
+            self.get_today_attendance(teacher_id) 
+                is not None
+        )
+
+    def has_checked_out_today(
+            self,
+            teacher_id: int
+    ) -> bool:
+
+        attendance = self.get_today_attendance(teacher_id)
+
+        return (
+            attendance is not None
+            and attendance.check_out_time is not None
+        )
+    
     def get_open_attendance(
         self,
         teacher_id: int,
@@ -48,7 +71,7 @@ class TeacherAttendanceRepository(BaseRepository[Attendance]):
             .first()
         )
 
-    def get_my_attendance_list(
+    def get_teacher_attendance_list(
         self,
         *,
         teacher_id: int | None = None,
