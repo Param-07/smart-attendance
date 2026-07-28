@@ -1,6 +1,7 @@
-from app.models import School
+from app.models import School, SchoolConfiguration
 
 from ..repository.school import SchoolRepository
+from ..repository.configuration import SchoolConfigurationRepository
 from ..exceptions import (
     SchoolCodeAlreadyExistsException,
     SchoolNotFoundException
@@ -11,6 +12,7 @@ class SchoolService:
     def __init__(self):
 
         self.school_repository = SchoolRepository()
+        self.configuration_repository = SchoolConfigurationRepository()
 
     def create_school(
             self,
@@ -39,6 +41,14 @@ class SchoolService:
 
         try:
             school = self.school_repository.add(school)
+            self.school_repository.flush()
+
+            configuration = SchoolConfiguration(
+                school_id = school.id
+            )
+
+            self.configuration_repository.add(configuration)
+            
             self.school_repository.commit()
 
             return school

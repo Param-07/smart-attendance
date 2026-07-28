@@ -65,3 +65,48 @@ class SchoolListResponseSchema(Schema):
     country = fields.String()
     email = fields.Email()
     is_active = fields.Boolean()
+    
+
+class SchoolConfigurationResponseSchema(Schema):
+
+    public_uuid = fields.UUID()
+
+    version = fields.Integer()
+
+    require_check_in_face = fields.Boolean()
+
+    require_check_out_face = fields.Boolean()
+
+    require_liveness = fields.Boolean()
+
+    allow_face_reregistration = fields.Boolean()
+
+    face_match_threshold = fields.Decimal(
+        as_string=True,
+    )
+
+    allow_check_in = fields.Boolean()
+
+    allow_check_out = fields.Boolean()
+
+    auto_checkout_enabled = fields.Boolean()
+
+    auto_checkout_time = fields.Time(
+        allow_none=True,
+    )
+
+    require_check_in_gps = fields.Boolean()
+
+    require_check_out_gps = fields.Boolean()
+
+    allowed_radius = fields.Integer()
+
+    gps_accuracy_threshold = fields.Integer()
+
+    max_failed_login_attempts = fields.Integer()
+
+    lockout_duration_minutes = fields.Integer()
+
+    created_at = fields.DateTime()
+
+    updated_at = fields.DateTime()

@@ -89,3 +89,60 @@ class SchoolListRequestSchema(Schema):
 class SchoolActivationRequestSchema(Schema):
 
     is_active = fields.Boolean(required=True)
+
+
+class SchoolConfigurationUpdateRequestSchema(Schema):
+
+    # Face Recognition
+
+    require_check_in_face = fields.Boolean()
+
+    require_check_out_face = fields.Boolean()
+
+    require_liveness = fields.Boolean()
+
+    allow_face_reregistration = fields.Boolean()
+
+    face_match_threshold = fields.Decimal(
+        as_string=True,
+        validate=validate.Range(
+            min=0,
+            max=1,
+        ),
+    )
+
+    # Attendance
+
+    allow_check_in = fields.Boolean()
+
+    allow_check_out = fields.Boolean()
+
+    auto_checkout_enabled = fields.Boolean()
+
+    auto_checkout_time = fields.Time(
+        allow_none=True,
+    )
+
+    # GPS
+
+    require_check_in_gps = fields.Boolean()
+
+    require_check_out_gps = fields.Boolean()
+
+    allowed_radius = fields.Integer(
+        validate=validate.Range(min=1),
+    )
+
+    gps_accuracy_threshold = fields.Integer(
+        validate=validate.Range(min=1),
+    )
+
+    # Security
+
+    max_failed_login_attempts = fields.Integer(
+        validate=validate.Range(min=1),
+    )
+
+    lockout_duration_minutes = fields.Integer(
+        validate=validate.Range(min=1),
+    )

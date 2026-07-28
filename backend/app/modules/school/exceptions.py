@@ -9,3 +9,8 @@ class SchoolCodeAlreadyExistsException(ConflictException):
 
     def __init__(self):
         super().__init__("School code is already assigned. Please enter the unique valid school code.")
+
+class ConfigurationNotFoundException(ConflictException):
+
+    def __init__(self):
+        super().__init__("Configuration not found.")
