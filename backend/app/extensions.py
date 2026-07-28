@@ -30,7 +30,7 @@ cors = CORS()
 
 supabase: Client = create_client(
     BaseConfig.SUPABASE_URL,
-    BaseConfig.SUPABASE_SERVICE_KEY,
+    BaseConfig.SUPABASE_SERVICE_ROLE_KEY,
 )
 
 

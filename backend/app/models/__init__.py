@@ -4,6 +4,8 @@ from .account import Account
 from .attendance import Attendance
 from .teacher_face import TeacherFace
 from .result_model import FaceMatchResult
+from .school import School
+from .school_configuration import SchoolConfiguration
 
 __all__ = [
     "BaseModel",
@@ -11,5 +13,7 @@ __all__ = [
     "Teacher",
     "Attendance",
     "TeacherFace",
-    "FaceMatchResult"
+    "FaceMatchResult",
+    "School",
+    "SchoolConfiguration"
 ]

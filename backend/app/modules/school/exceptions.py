@@ -1,0 +1,11 @@
+from app.core.exceptions import ConflictException
+
+class SchoolNotFoundException(ConflictException):
+
+    def __init__(self):
+        super().__init__("School not found.")
+
+class SchoolCodeAlreadyExistsException(ConflictException):
+
+    def __init__(self):
+        super().__init__("School code is already assigned. Please enter the unique valid school code.")
