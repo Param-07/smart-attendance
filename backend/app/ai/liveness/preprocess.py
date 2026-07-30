@@ -3,35 +3,38 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
+
 class LivenessPreprocessor:
+
+    INPUT_SIZE = (80, 80)
 
     def preprocess(
         self,
         image: np.ndarray,
-        input_size: tuple[int, int]
     ) -> np.ndarray:
         """
-        Preprocess image for the anti-spoofing model.
+        Convert BGR image to MiniFASNet input tensor.
+
+        Returns:
+            Shape: (1, 3, 80, 80)
         """
 
-        image = cv2.resize(image, input_size)
-
-        image = cv2.cvtColor(
+        image = cv2.resize(
             image,
-            cv2.COLOR_BGR2RGB
+            self.INPUT_SIZE,
         )
 
         image = image.astype(np.float32)
-        image /= 255.0
+        image = (image - 127.5) / 128.0
 
         image = np.transpose(
             image,
-            (2,0,1)
+            (2, 0, 1),
         )
 
         image = np.expand_dims(
             image,
-            axis=0
+            axis=0,
         )
 
         return image

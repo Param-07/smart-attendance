@@ -31,6 +31,10 @@ class SchoolConfiguration(BaseModel):
             name="face_match_threshold_range",
         ),
         CheckConstraint(
+            "liveness_threshold >= 0 AND liveness_threshold <= 1",
+            name="liveness_threshold_range",
+        ),
+        CheckConstraint(
             "allowed_radius > 0",
             name="allowed_radius_positive",
         ),
@@ -101,6 +105,11 @@ class SchoolConfiguration(BaseModel):
         Boolean,
         nullable=False,
         server_default=text("true"),
+    )
+
+    liveness_threshold: Mapped[Decimal] = mapped_column(
+        Numeric(3,2),
+        server_default=text("0.80")
     )
 
     allow_face_reregistration: Mapped[bool] = mapped_column(

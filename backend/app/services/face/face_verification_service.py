@@ -1,6 +1,3 @@
-from werkzeug.datastructures import FileStorage
-
-from app.ai.preprocessing.image_utils import ImageUtils
 from app.services.face.face_detection_service import FaceDetectionService
 from app.services.face.face_embedding_service import FaceEmbeddingService
 from app.ai.postprocessing.similarity_service import SimilarityService

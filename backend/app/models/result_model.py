@@ -12,4 +12,5 @@ class LivenessResult:
     is_live: bool
     confidence: float
     live_probability: float
-    spoof_probability: float
+    print_attack_probability: float
+    replay_attack_probability: float
