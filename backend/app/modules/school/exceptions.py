@@ -14,3 +14,8 @@ class ConfigurationNotFoundException(ConflictException):
 
     def __init__(self):
         super().__init__("Configuration not found.")
+
+class InvalidEmailException(ConflictException):
+
+    def __init__(self):
+        super().__init__("Please check your email Id.")

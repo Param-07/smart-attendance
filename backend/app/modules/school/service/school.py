@@ -4,7 +4,8 @@ from ..repository.school import SchoolRepository
 from ..repository.configuration import SchoolConfigurationRepository
 from ..exceptions import (
     SchoolCodeAlreadyExistsException,
-    SchoolNotFoundException
+    SchoolNotFoundException,
+    InvalidEmailException
 )
 
 class SchoolService:
@@ -23,6 +24,9 @@ class SchoolService:
 
         if school:
             raise SchoolCodeAlreadyExistsException()
+
+        if self.school_repository.exists(data["email"]):
+            raise InvalidEmailException()
 
         school = School(
             name=data["name"],

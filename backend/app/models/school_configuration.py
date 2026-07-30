@@ -11,7 +11,8 @@ from sqlalchemy import (
     Integer,
     Time,
     text,
-    Numeric
+    Numeric,
+    String
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -44,6 +45,14 @@ class SchoolConfiguration(BaseModel):
         CheckConstraint(
             "lockout_duration_minutes >= 1",
             name="lockout_duration_minutes_positive",
+        ),
+        CheckConstraint(
+            "school_latitude IS NULL OR (school_latitude >= -90 AND school_latitude <= 90)",
+            name="school_latitude_range",
+        ),
+        CheckConstraint(
+            "school_longitude IS NULL OR (school_longitude >= -180 AND school_longitude <= 180)",
+            name="school_longitude_range",
         ),
     )
     
@@ -169,6 +178,21 @@ class SchoolConfiguration(BaseModel):
         Integer,
         nullable=False,
         server_default=text("30"),
+    )
+
+    school_latitude: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 8),
+        nullable=True,
+    )
+
+    school_longitude: Mapped[Decimal | None] = mapped_column(
+        Numeric(11, 8),
+        nullable=True,
+    )
+
+    location_name: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
     )
 
     def __repr__(self) -> str:

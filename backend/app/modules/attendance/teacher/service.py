@@ -195,7 +195,7 @@ class TeacherAttendanceService:
                 longitude=longitude,
                 accuracy=accuracy,
                 selfie_path=selfie_path,
-                similarity_score=verification_result.similarity_score,
+                similarity_score=verification_result[1][0],
             )
 
             self._save_attendance(

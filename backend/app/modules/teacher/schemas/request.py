@@ -66,6 +66,8 @@ class TeacherCreateRequestSchema(Schema):
         allow_none=True,
     )
 
+    school_public_uuid = fields.String(required= True)
+
 class TeacherUpdateRequestSchema(Schema):
 
     employee_code = fields.String()

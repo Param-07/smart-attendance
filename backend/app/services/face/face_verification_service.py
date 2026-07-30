@@ -18,12 +18,8 @@ class FaceVerificationService:
 
     def extract_embedding(
         self,
-        uploaded_file: FileStorage,
+        image,
     ):
-
-        image = ImageUtils.read_uploaded_image(
-            uploaded_file
-        )
 
         face = self.face_detector.detect_single_face(
             image
@@ -53,11 +49,11 @@ class FaceVerificationService:
     def verify(
         self,
         registered_embedding,
-        uploaded_file,
+        image,
     ):
 
         face, current_embedding = self.extract_embedding(
-            uploaded_file
+            image
         )
 
         result = self.compare(
