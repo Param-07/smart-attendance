@@ -53,9 +53,13 @@ class FaceVerificationService:
             image
         )
 
-        result = self.compare(
+        similarity, result = self.compare(
             registered_embedding,
             current_embedding,
         )
 
-        return face, result
+        return (
+            face,
+            similarity,
+            result
+        )

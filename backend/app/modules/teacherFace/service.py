@@ -1,6 +1,7 @@
 import os
 from datetime import UTC, datetime
 
+import cv2
 from werkzeug.datastructures import FileStorage
 
 from app.extensions import db
@@ -11,15 +12,16 @@ from app.core.exceptions import (
     NotFoundException,
 )
 
+from app.ai.preprocessing.image_utils import ImageUtils
+from app.ai.preprocessing.face_cropper import FaceCropper
 from app.modules.teacher.repository import TeacherRepository
 from app.modules.teacherFace.repository import TeacherFaceRepository
+from app.modules.school.repository.configuration import SchoolConfigurationRepository
 
-from app.services.face.face_verification_service import (
-    FaceVerificationService,
-)
-from app.services.storage.selfie_storage_service import (
-    StorageService,
-)
+from app.services.face.face_verification_service import FaceVerificationService
+from app.services.storage.selfie_storage_service import StorageService
+from app.services.face.liveness_service import LivenessService
+from app.services.face.face_detection_service import FaceDetectionService
 
 
 class TeacherFaceService:
@@ -35,6 +37,14 @@ class TeacherFaceService:
         self.face_verification = FaceVerificationService()
 
         self.storage = StorageService()
+    
+        self.liveness_service = LivenessService()
+
+        self.configuration_repository = SchoolConfigurationRepository()
+
+        self.face_detector = FaceDetectionService()
+
+        self.face_cropper = FaceCropper()
 
     # ============================================================
     # Public Methods
@@ -54,13 +64,23 @@ class TeacherFaceService:
             teacher
         )
 
+        configuration = self._get_configuration(teacher)
+
+        image = self._read_image(uploaded_file)
+
+        result = self._validate_liveness(
+            image=image,
+            configuration=configuration
+        )
+
         face, embedding = (
             self.face_verification.extract_embedding(
-                uploaded_file
+                image
             )
         )
 
         image_path = None
+        uploaded_file.stream.seek(0)
 
         try:
 
@@ -265,13 +285,18 @@ class TeacherFaceService:
             teacher.id
         )
 
+        image = self._read_image(uploaded_file)
+        configuration = self._get_configuration(teacher)
+        self._validate_liveness(image, configuration)
+
         face, embedding = (
             self.face_verification.extract_embedding(
-                uploaded_file
+                image
             )
         )
 
         image_path = None
+        uploaded_file.stream.seek(0)  
 
         try:
 
@@ -343,3 +368,40 @@ class TeacherFaceService:
             )
 
         return teacher_face
+
+    def _read_image(
+        self,
+        uploaded_file: FileStorage,
+    ):
+
+        return ImageUtils.read_uploaded_image(uploaded_file)
+
+    def _validate_liveness(
+        self,
+        image,
+        configuration
+    ) -> None:
+
+        face = self.face_detector.detect_single_face(image)
+        
+        face_crop = self.face_cropper.crop(image, face)
+
+        self.liveness_service.validate(
+            image=face_crop,
+            configuration=configuration
+        )
+
+    def _get_configuration(
+        self,
+        teacher: Teacher,
+    ):
+        school_public_uuid = teacher.school.public_uuid
+        print("School Public UUID:", school_public_uuid)
+
+        configuration = (
+            self.configuration_repository.get_by_school_public_uuid(
+                school_public_uuid
+            )
+        )
+        print("Configuration:", configuration)
+        return configuration

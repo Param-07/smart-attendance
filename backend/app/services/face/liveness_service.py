@@ -1,6 +1,8 @@
 from app.ai.liveness.anti_spoof_model import AntiSpoofModel
 from app.core.exceptions import ConflictException
 
+from app.models import SchoolConfiguration
+
 class LivenessService:
 
     def __init__(self):
@@ -9,7 +11,7 @@ class LivenessService:
     def validate(
         self,
         image,
-        configuration,
+        configuration: SchoolConfiguration,
     ):
 
         if not configuration.require_liveness:

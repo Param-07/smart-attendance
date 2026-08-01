@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional
 
-from app.models import SchoolConfiguration
+from app.models import SchoolConfiguration, School
 from app.modules.common.database.base_repository import BaseRepository
 from app.extensions import db
 
@@ -30,9 +30,9 @@ class SchoolConfigurationRepository(BaseRepository[SchoolConfiguration]):
     ) -> Optional[SchoolConfiguration]:
 
         return (
-            db.session.query(SchoolConfiguration)
+            db.session.query(SchoolConfiguration).join(School)
                 .filter(
-                    SchoolConfiguration.public_uuid == public_uuid
+                    School.public_uuid == public_uuid
                 )
                 .first()
         )

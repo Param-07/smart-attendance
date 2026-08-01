@@ -53,6 +53,10 @@ class AntiSpoofModel:
             replay_probability,
         )
 
+        print(f"Live Probability: {live_probability}")
+        print(f"Print Attack Probability: {print_probability}")
+        print(f"Replay Attack Probability: {replay_probability}")
+        print(f"Spoof Attack Probability: {spoof_probability}")
         return LivenessResult(
             is_live=live_probability >= spoof_probability,
             confidence=live_probability,

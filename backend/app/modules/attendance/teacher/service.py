@@ -1,5 +1,6 @@
 from datetime import date, datetime, timezone
 from decimal import Decimal
+from email.mime import image
 
 from werkzeug.datastructures import FileStorage
 
@@ -7,10 +8,15 @@ from app.extensions import db
 from app.core.exceptions import ValidationException
 from app.core.pagination import PaginationResult
 
-from app.models import Attendance, Teacher, TeacherFace
+from app.models import Attendance, Teacher, TeacherFace, SchoolConfiguration
 
 from app.modules.teacher.repository import TeacherRepository
-from app.modules.teacher.exceptions import TeacherNotFoundException
+from app.modules.teacher.exceptions import (
+    TeacherNotFoundException,
+    TeacherInactiveException,
+)
+
+from app.modules.school.repository.configuration import SchoolConfigurationRepository
 
 from app.modules.teacherFace.repository import TeacherFaceRepository
 from app.modules.teacherFace.exceptions import (
@@ -22,6 +28,7 @@ from app.modules.attendance.teacher.repository import (
 )
 
 from app.modules.attendance.enums import AttendanceStatus
+from app.core.enums import EmploymentStatus
 
 from app.modules.attendance.exceptions import (
     AttendanceAlreadyCheckedInException,
@@ -31,13 +38,18 @@ from app.modules.attendance.exceptions import (
     AttendanceNotFoundException,
 )
 
-from app.services.face.face_verification_service import (
-    FaceVerificationService,
+from app.modules.school.exceptions import (
+    ConfigurationNotFoundException
 )
 
-from app.services.storage.selfie_storage_service import (
-    StorageService,
-)
+from app.services.face.exceptions import FaceMismatchException
+
+from app.services.face.face_verification_service import FaceVerificationService
+from app.services.gps.gps_validation_service import GPSValidationServce
+from app.services.face.liveness_service import LivenessService
+from app.services.storage.selfie_storage_service import StorageService
+
+from app.ai.preprocessing.image_utils import ImageUtils
 
 
 class TeacherAttendanceService:
@@ -47,28 +59,14 @@ class TeacherAttendanceService:
     def __init__(self):
 
         self.teacher_repository = TeacherRepository()
-
         self.teacher_face_repository = TeacherFaceRepository()
-
         self.attendance_repository = TeacherAttendanceRepository()
+        self.configuration_repository = SchoolConfigurationRepository()
 
         self.face_verification = FaceVerificationService()
-
+        self.liveness_service = LivenessService()
+        self.gps_service = GPSValidationServce()
         self.storage = StorageService()
-
-    def get_attendance(
-        self,
-        public_uuid: str,
-    ) -> Attendance:
-
-        attendance = self.attendance_repository.get_by_public_uuid(
-            public_uuid
-        )
-
-        if attendance is None:
-            raise AttendanceNotFoundException()
-
-        return attendance
 
     def get_my_attendance_today(
         self,
@@ -154,34 +152,66 @@ class TeacherAttendanceService:
         self,
         *,
         teacher_public_uuid: str,
-        selfie: FileStorage,
-        latitude: Decimal,
-        longitude: Decimal,
-        accuracy: float,
+        selfie: FileStorage | None,
+        latitude: Decimal | None,
+        longitude: Decimal | None,
+        accuracy: float | None,
     ) -> Attendance:
-
-        teacher = self._get_teacher(
-            teacher_public_uuid
-        )
-
-        registered_face = self._get_registered_face(
-            teacher.id
-        )
-
-        self._validate_check_in(
-            teacher.id
-        )
-
-        verification_result = (
-            self.face_verification.verify(
-                registered_embedding=registered_face.embedding,
-                uploaded_file=selfie,
-            )
-        )
 
         selfie_path = None
 
         try:
+
+            teacher = self._get_teacher(
+                teacher_public_uuid
+            )
+
+            configuration = self._get_configuration(
+                teacher.school.public_uuid
+            )
+            self._validate_teacher_status(
+                teacher
+            )
+
+            self._validate_duplicate_check_in(
+                teacher.id
+            )
+
+            self._validate_gps(
+                configuration,
+                latitude,
+                longitude,
+                accuracy,
+            )
+
+            similarity = None
+
+            if configuration.require_check_in_face:
+
+                image = self._read_image(
+                    selfie
+                )
+
+                self._validate_liveness(
+                    configuration,
+                    image=image,
+                )
+
+                registered_face = self._get_registered_face(
+                    teacher.id
+                )
+
+                _, similarity, is_match = (
+                    self.face_verification.verify(
+                        registered_embedding=registered_face.embedding,
+                        image=image,
+                    )
+                )
+
+                if not is_match:
+                    raise FaceMismatchException()
+
+            selfie.stream.seek(0)
 
             selfie_path = self._upload_selfie(
                 teacher=teacher,
@@ -195,7 +225,7 @@ class TeacherAttendanceService:
                 longitude=longitude,
                 accuracy=accuracy,
                 selfie_path=selfie_path,
-                similarity_score=verification_result[1][0],
+                similarity_score=similarity,
             )
 
             self._save_attendance(
@@ -225,38 +255,68 @@ class TeacherAttendanceService:
         self,
         *,
         teacher_public_uuid: str,
-        selfie: FileStorage,
-        latitude: Decimal,
-        longitude: Decimal,
-        accuracy: float,
+        selfie: FileStorage | None,
+        latitude: Decimal | None,
+        longitude: Decimal | None,
+        accuracy: float | None,
     ) -> Attendance:
-
-        teacher = self._get_teacher(
-            teacher_public_uuid
-        )
-
-        attendance = self._get_open_attendance(
-            teacher.id
-        )
-
-        registered_face = self._get_registered_face(
-            teacher.id
-        )
-
-        self._validate_check_out(
-            attendance
-        )
-
-        verification_result = (
-            self.face_verification.verify(
-                registered_embedding=registered_face.embedding,
-                uploaded_file=selfie,
-            )
-        )
 
         selfie_path = None
 
         try:
+
+            teacher = self._get_teacher(
+                teacher_public_uuid
+            )
+
+            configuration = self._get_configuration(
+                teacher.school.public_uuid
+            )
+
+            attendance = self._get_open_attendance(
+                teacher.id
+            )
+
+            self._validate_check_out(
+                attendance
+            )
+
+            image = self._read_image(
+                selfie
+            )
+
+            self._validate_gps(
+                configuration,
+                latitude,
+                longitude,
+                accuracy,
+                gps_required=configuration.require_check_out_gps,
+            )
+
+            self._validate_liveness(
+                configuration,
+                image=image,
+            )
+
+            similarity = None
+
+            if configuration.require_check_out_face:
+
+                registered_face = self._get_registered_face(
+                    teacher.id
+                )
+
+                _, similarity, is_match = (
+                    self.face_verification.verify(
+                        registered_embedding=registered_face.embedding,
+                        image=image,
+                    )
+                )
+
+                if not is_match:
+                    raise FaceMismatchException()
+
+            selfie.stream.seek(0)
 
             selfie_path = self._upload_selfie(
                 teacher=teacher,
@@ -270,7 +330,7 @@ class TeacherAttendanceService:
                 longitude=longitude,
                 accuracy=accuracy,
                 selfie_path=selfie_path,
-                similarity_score=verification_result.similarity_score,
+                similarity_score=similarity,
             )
 
             db.session.commit()
@@ -340,7 +400,7 @@ class TeacherAttendanceService:
 
         return attendance
 
-    def _validate_check_in(
+    def _validate_duplicate_check_in(
         self,
         teacher_id: int,
     ) -> None:
@@ -446,3 +506,48 @@ class TeacherAttendanceService:
         )
 
         db.session.flush()
+
+    def _get_configuration(
+        self,
+        school_public_uuid: str
+    ) -> SchoolConfiguration:
+
+        config = self.configuration_repository.get_by_school_public_uuid(school_public_uuid)
+
+        if config is None:
+            raise ConfigurationNotFoundException()
+
+        return config
+
+    def _validate_teacher_status(
+            self, 
+            teacher: Teacher
+        ):
+
+        if not teacher.is_active:
+            raise TeacherNotFoundException()
+
+        if teacher.employment_status == EmploymentStatus.INACTIVE:
+            raise TeacherInactiveException()
+
+    def _read_image(self, uploaded_file: FileStorage):
+
+        return ImageUtils.read_uploaded_image(uploaded_file)
+
+
+    def _validate_gps(self, configuration: SchoolConfiguration, latitude, longitude, accuracy):
+
+        self.gps_service.validate(
+            configurations= configuration,
+            latitude= latitude,
+            longitude= longitude,
+            accuracy= accuracy,
+            gps_required= configuration.require_check_in_gps
+        )
+
+    def _validate_liveness(self, configuration, image):
+
+        return self.liveness_service.validate(
+            configuration= configuration,
+            image= image
+        )

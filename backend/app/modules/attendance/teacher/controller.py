@@ -54,8 +54,11 @@ class TeacherAttendanceController:
             request.get_json()
         )
 
+        selfie = request.files.get("selfie")
+
         attendance = self.service.check_out(
             public_uuid= public_uuid,
+            selfie= selfie,
             **payload
         )
 
@@ -76,19 +79,6 @@ class TeacherAttendanceController:
         return ApiResponse.success(
             message= "Today's Attendance",
             data= resposne
-        )
-
-
-    
-    @auth_required
-    def get_attendance(self, public_uuid):
-
-        attendance = self.service.get_attendance(public_uuid)
-        response = self.response_schema.dump(attendance)
-
-        return ApiResponse.success(
-            message= "Attendance retrived",
-            data= response
         )
     
     @auth_required

@@ -25,7 +25,7 @@ class LivenessPreprocessor:
         )
 
         image = image.astype(np.float32)
-        image = (image - 127.5) / 128.0
+        image /= 255.0
 
         image = np.transpose(
             image,
