@@ -7,10 +7,10 @@ class FaceMatchResult:
     similarity_score: float
     threshold: float
 
-@dataclass
+@dataclass(slots=True)
 class LivenessResult:
     is_live: bool
     confidence: float
-    live_probability: float
-    print_attack_probability: float
-    replay_attack_probability: float
+    real_logit: float
+    spoof_logit: float
+    logit_difference: float

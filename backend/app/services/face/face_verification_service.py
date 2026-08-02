@@ -1,3 +1,6 @@
+from insightface.app.common import Face
+import numpy as np
+
 from app.services.face.face_detection_service import FaceDetectionService
 from app.services.face.face_embedding_service import FaceEmbeddingService
 from app.ai.postprocessing.similarity_service import SimilarityService
@@ -15,12 +18,8 @@ class FaceVerificationService:
 
     def extract_embedding(
         self,
-        image,
+        face,
     ):
-
-        face = self.face_detector.detect_single_face(
-            image
-        )
 
         embedding = self.face_embedding.get_embedding(
             face
@@ -29,8 +28,8 @@ class FaceVerificationService:
         self.face_embedding.validate_embedding(
             embedding
         )
-
-        return face, embedding
+        print(f"Extracted embedding shape")
+        return embedding
 
     def compare(
         self,
@@ -45,12 +44,13 @@ class FaceVerificationService:
 
     def verify(
         self,
-        registered_embedding,
-        image,
+        *,
+        registered_embedding: np.ndarray,
+        face: Face,
     ):
 
-        face, current_embedding = self.extract_embedding(
-            image
+        current_embedding = self.extract_embedding(
+            face
         )
 
         similarity, result = self.compare(
@@ -59,7 +59,6 @@ class FaceVerificationService:
         )
 
         return (
-            face,
             similarity,
-            result
+            result,
         )

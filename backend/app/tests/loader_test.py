@@ -1,6 +1,6 @@
-from app.ai.loaders.insightface_loader import InsightFaceLoader
+from app.ai.loaders.liveness_loader import LivenessLoader
 
-model = InsightFaceLoader.get_model()
+session = LivenessLoader.get_session()
 
-print(type(model))
-print("InsightFace loaded successfully.")
+print(session.get_inputs())
+print(session.get_outputs())

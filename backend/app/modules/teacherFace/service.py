@@ -67,15 +67,17 @@ class TeacherFaceService:
         configuration = self._get_configuration(teacher)
 
         image = self._read_image(uploaded_file)
+        face = self.face_detector.detect_single_face(image)
 
-        result = self._validate_liveness(
+        self._validate_liveness(
             image=image,
+            face = face,
             configuration=configuration
         )
 
-        face, embedding = (
+        embedding = (
             self.face_verification.extract_embedding(
-                image
+                face
             )
         )
 
@@ -83,12 +85,12 @@ class TeacherFaceService:
         uploaded_file.stream.seek(0)
 
         try:
-
+            print(f"Here hu")
             image_path = self._upload_face(
                 teacher,
                 uploaded_file,
             )
-
+            print(f"Image path: {image_path}")
             teacher_face = self._create_teacher_face(
                 teacher=teacher,
                 embedding=embedding,
@@ -170,7 +172,8 @@ class TeacherFaceService:
         file_path = (
             f"{teacher.public_uuid}/{filename}"
         )
-
+        print(f"Uploading file to path: {file_path}")
+        print(f"Uploaded file content type: {uploaded_file.content_type}")
         return self.storage.upload_file(
             bucket_name=self.BUCKET_NAME,
             file_path=file_path,
@@ -287,11 +290,13 @@ class TeacherFaceService:
 
         image = self._read_image(uploaded_file)
         configuration = self._get_configuration(teacher)
-        self._validate_liveness(image, configuration)
 
-        face, embedding = (
+        face = self.face_detector.detect_single_face(image)
+        self._validate_liveness(image, face, configuration)
+
+        embedding = (
             self.face_verification.extract_embedding(
-                image
+                face
             )
         )
 
@@ -379,15 +384,17 @@ class TeacherFaceService:
     def _validate_liveness(
         self,
         image,
+        face,
         configuration
     ) -> None:
-
+        print("Validating liveness with configuration:", configuration)
         face = self.face_detector.detect_single_face(image)
         
         face_crop = self.face_cropper.crop(image, face)
-
+        print("Face crop shapeDone")
         self.liveness_service.validate(
             image=face_crop,
+            face=face,
             configuration=configuration
         )
 

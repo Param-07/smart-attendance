@@ -2,6 +2,7 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 from email.mime import image
 
+from scipy.datasets import face
 from werkzeug.datastructures import FileStorage
 
 from app.extensions import db
@@ -45,6 +46,7 @@ from app.modules.school.exceptions import (
 from app.services.face.exceptions import FaceMismatchException
 
 from app.services.face.face_verification_service import FaceVerificationService
+from app.services.face.face_detection_service import FaceDetectionService
 from app.services.gps.gps_validation_service import GPSValidationServce
 from app.services.face.liveness_service import LivenessService
 from app.services.storage.selfie_storage_service import StorageService
@@ -64,6 +66,7 @@ class TeacherAttendanceService:
         self.configuration_repository = SchoolConfigurationRepository()
 
         self.face_verification = FaceVerificationService()
+        self.face_detector = FaceDetectionService()
         self.liveness_service = LivenessService()
         self.gps_service = GPSValidationServce()
         self.storage = StorageService()
@@ -192,19 +195,22 @@ class TeacherAttendanceService:
                     selfie
                 )
 
+                face = self.face_detector.detect_single_face(image)
+
                 self._validate_liveness(
                     configuration,
                     image=image,
+                    face=face,
                 )
 
                 registered_face = self._get_registered_face(
                     teacher.id
                 )
 
-                _, similarity, is_match = (
+                similarity, is_match = (
                     self.face_verification.verify(
                         registered_embedding=registered_face.embedding,
-                        image=image,
+                        face=face,
                     )
                 )
 
@@ -281,10 +287,6 @@ class TeacherAttendanceService:
                 attendance
             )
 
-            image = self._read_image(
-                selfie
-            )
-
             self._validate_gps(
                 configuration,
                 latitude,
@@ -293,23 +295,29 @@ class TeacherAttendanceService:
                 gps_required=configuration.require_check_out_gps,
             )
 
-            self._validate_liveness(
-                configuration,
-                image=image,
-            )
-
             similarity = None
 
             if configuration.require_check_out_face:
+                image = self._read_image(
+                    selfie
+                )
+
+                self._validate_liveness(
+                    configuration,
+                    image=image,
+                    face=face,
+                )
 
                 registered_face = self._get_registered_face(
                     teacher.id
                 )
 
-                _, similarity, is_match = (
+                face = self.face_detector.detect_single_face(image)
+
+                similarity, is_match = (
                     self.face_verification.verify(
                         registered_embedding=registered_face.embedding,
-                        image=image,
+                        face=face,
                     )
                 )
 

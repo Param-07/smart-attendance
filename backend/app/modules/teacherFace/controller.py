@@ -39,7 +39,7 @@ class TeacherFaceController:
 
         uploaded_file = request.files.get("selfie")
 
-        teacher_face = self.service.update_face(
+        teacher_face = self.service.replace_face(
             teacher_public_uuid,
             uploaded_file,
         )
@@ -55,7 +55,7 @@ class TeacherFaceController:
     @roles_required(UserRole.ADMIN)
     def get_face(self, teacher_public_uuid):
 
-        teacher_face = self.service.get_face(
+        teacher_face = self.service.get_registered_face(
             teacher_public_uuid
         )
 

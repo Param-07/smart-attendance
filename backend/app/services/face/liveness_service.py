@@ -1,4 +1,4 @@
-from app.ai.liveness.anti_spoof_model import AntiSpoofModel
+from app.ai.liveness.anti_spoof_model import LivenessModel
 from app.core.exceptions import ConflictException
 
 from app.models import SchoolConfiguration
@@ -6,18 +6,20 @@ from app.models import SchoolConfiguration
 class LivenessService:
 
     def __init__(self):
-        self.model = AntiSpoofModel()
+        self.model = LivenessModel()
 
     def validate(
         self,
         image,
+        face,
         configuration: SchoolConfiguration,
     ):
 
         if not configuration.require_liveness:
             return None
 
-        result = self.model.predict(image)
+        result = self.model.predict(image, face, configuration.liveness_threshold)
+        print(f"Liveness result: {result.is_live}, confidence: {result.confidence}")
 
         if not result.is_live:
             raise ConflictException(

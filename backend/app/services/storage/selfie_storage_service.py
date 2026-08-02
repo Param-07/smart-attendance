@@ -15,7 +15,7 @@ class StorageService:
 
         self.client.storage.from_(bucket_name).upload(
             path= file_path,
-            file= file.stream,
+            file= file.read(),
             file_options= {
                 "content-type": content_type or file.content_type,
                 "upsert": False
