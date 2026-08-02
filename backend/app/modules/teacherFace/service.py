@@ -85,12 +85,12 @@ class TeacherFaceService:
         uploaded_file.stream.seek(0)
 
         try:
-            print(f"Here hu")
+
             image_path = self._upload_face(
                 teacher,
                 uploaded_file,
             )
-            print(f"Image path: {image_path}")
+
             teacher_face = self._create_teacher_face(
                 teacher=teacher,
                 embedding=embedding,
@@ -172,8 +172,7 @@ class TeacherFaceService:
         file_path = (
             f"{teacher.public_uuid}/{filename}"
         )
-        print(f"Uploading file to path: {file_path}")
-        print(f"Uploaded file content type: {uploaded_file.content_type}")
+
         return self.storage.upload_file(
             bucket_name=self.BUCKET_NAME,
             file_path=file_path,
@@ -387,11 +386,11 @@ class TeacherFaceService:
         face,
         configuration
     ) -> None:
-        print("Validating liveness with configuration:", configuration)
+
         face = self.face_detector.detect_single_face(image)
         
         face_crop = self.face_cropper.crop(image, face)
-        print("Face crop shapeDone")
+
         self.liveness_service.validate(
             image=face_crop,
             face=face,
@@ -403,12 +402,11 @@ class TeacherFaceService:
         teacher: Teacher,
     ):
         school_public_uuid = teacher.school.public_uuid
-        print("School Public UUID:", school_public_uuid)
 
         configuration = (
             self.configuration_repository.get_by_school_public_uuid(
                 school_public_uuid
             )
         )
-        print("Configuration:", configuration)
+
         return configuration

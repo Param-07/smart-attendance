@@ -44,7 +44,6 @@ class TeacherService:
             self.base_repository.add(account)
             self.base_repository.flush()
 
-            print("account created")
             teacher = Teacher(
                 school_id = school.id,
                 account_id=account.id,

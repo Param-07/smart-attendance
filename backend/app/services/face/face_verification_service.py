@@ -28,7 +28,7 @@ class FaceVerificationService:
         self.face_embedding.validate_embedding(
             embedding
         )
-        print(f"Extracted embedding shape")
+
         return embedding
 
     def compare(

@@ -4,8 +4,6 @@ Database Utilities
 Provides helper functions for validating the
 database connection.
 
-Author: Parmanand Gupta
-Project: Smart Attendance
 """
 
 from sqlalchemy import text

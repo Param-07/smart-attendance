@@ -33,7 +33,7 @@ class TeacherAttendanceController:
         selfie = request.files.get("selfie")
 
         attendance = self.service.check_in(
-            public_uuid= public_uuid,
+            account_public_uuid= public_uuid,
             selfie= selfie,
             **payload,
         )
@@ -51,13 +51,13 @@ class TeacherAttendanceController:
         public_uuid = get_jwt_identity()
 
         payload = self.check_out_request_schema.load(
-            request.get_json()
+            request.form
         )
 
         selfie = request.files.get("selfie")
 
         attendance = self.service.check_out(
-            public_uuid= public_uuid,
+            account_public_uuid= public_uuid,
             selfie= selfie,
             **payload
         )

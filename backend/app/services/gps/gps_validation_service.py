@@ -43,7 +43,7 @@ class GPSValidationServce:
             user_latitude= latitude,
             user_longitude= longitude,
             school_latitude= configurations.school_latitude,
-            school_longitude= configurations.school_latitude
+            school_longitude= configurations.school_longitude
         )
 
         self._validate_radius(
@@ -66,7 +66,6 @@ class GPSValidationServce:
 
     def _validate_accuracy(
         self,
-        *,
         accuracy: int,
         threshold: int,
     ) -> None:
@@ -76,7 +75,6 @@ class GPSValidationServce:
 
     def _validate_radius(
         self,
-        *,
         distance: float,
         allowed_radius: int,
     ) -> None:

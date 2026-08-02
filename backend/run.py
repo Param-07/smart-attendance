@@ -3,8 +3,6 @@ Application Entry Point
 
 Starts the Smart Attendance Flask application.
 
-Author: Parmanand Gupta
-Project: Smart Attendance
 """
 
 from app import create_app

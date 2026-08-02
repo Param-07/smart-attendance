@@ -4,8 +4,6 @@ Application Settings
 Contains application-wide constants used throughout
 the Smart Attendance system.
 
-Author: Parmanand Gupta
-Project: Smart Attendance
 """
 
 from pathlib import Path

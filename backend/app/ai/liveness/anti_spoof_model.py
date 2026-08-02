@@ -47,7 +47,6 @@ class LivenessModel:
             image=image,
             face=face,
         )
-        print(f"Face crop shape-2")
 
         batch = self.preprocessor.preprocess_batch(
             [crop]

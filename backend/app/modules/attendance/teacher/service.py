@@ -73,11 +73,11 @@ class TeacherAttendanceService:
 
     def get_my_attendance_today(
         self,
-        teacher_public_uuid: str,
+        account_public_uuid: str,
     ) -> Attendance:
 
         teacher = self._get_teacher(
-            teacher_public_uuid
+            account_public_uuid=account_public_uuid
         )
 
         attendance = (
@@ -94,7 +94,7 @@ class TeacherAttendanceService:
     def get_my_attendance_list(
         self,
         *,
-        teacher_public_uuid: str,
+        account_public_uuid: str,
         search: str | None = None,
         status: AttendanceStatus | None = None,
         start_date: date | None = None,
@@ -106,7 +106,7 @@ class TeacherAttendanceService:
     ) -> PaginationResult[Attendance]:
 
         teacher = self._get_teacher(
-            teacher_public_uuid
+            account_public_uuid=account_public_uuid
         )
 
         today = date.today()
@@ -154,7 +154,7 @@ class TeacherAttendanceService:
     def check_in(
         self,
         *,
-        teacher_public_uuid: str,
+        account_public_uuid: str,
         selfie: FileStorage | None,
         latitude: Decimal | None,
         longitude: Decimal | None,
@@ -166,7 +166,7 @@ class TeacherAttendanceService:
         try:
 
             teacher = self._get_teacher(
-                teacher_public_uuid
+                account_public_uuid
             )
 
             configuration = self._get_configuration(
@@ -185,6 +185,7 @@ class TeacherAttendanceService:
                 latitude,
                 longitude,
                 accuracy,
+                gps_required=configuration.require_check_in_gps
             )
 
             similarity = None
@@ -260,7 +261,7 @@ class TeacherAttendanceService:
     def check_out(
         self,
         *,
-        teacher_public_uuid: str,
+        account_public_uuid: str,
         selfie: FileStorage | None,
         latitude: Decimal | None,
         longitude: Decimal | None,
@@ -272,7 +273,7 @@ class TeacherAttendanceService:
         try:
 
             teacher = self._get_teacher(
-                teacher_public_uuid
+                account_public_uuid=account_public_uuid
             )
 
             configuration = self._get_configuration(
@@ -364,11 +365,11 @@ class TeacherAttendanceService:
 
     def _get_teacher(
         self,
-        teacher_public_uuid: str,
+        account_public_uuid: str,
     ) -> Teacher:
 
-        teacher = self.teacher_repository.get_by_public_uuid(
-            teacher_public_uuid
+        teacher = self.teacher_repository.get_by_account_public_uuid(
+            account_public_uuid
         )
 
         if teacher is None:
@@ -535,7 +536,7 @@ class TeacherAttendanceService:
         if not teacher.is_active:
             raise TeacherNotFoundException()
 
-        if teacher.employment_status == EmploymentStatus.INACTIVE:
+        if teacher.employment_status == EmploymentStatus.RESIGNED:
             raise TeacherInactiveException()
 
     def _read_image(self, uploaded_file: FileStorage):
@@ -543,19 +544,20 @@ class TeacherAttendanceService:
         return ImageUtils.read_uploaded_image(uploaded_file)
 
 
-    def _validate_gps(self, configuration: SchoolConfiguration, latitude, longitude, accuracy):
+    def _validate_gps(self, configuration: SchoolConfiguration, latitude, longitude, accuracy, gps_required: bool):
 
         self.gps_service.validate(
             configurations= configuration,
             latitude= latitude,
             longitude= longitude,
             accuracy= accuracy,
-            gps_required= configuration.require_check_in_gps
+            gps_required= gps_required
         )
 
-    def _validate_liveness(self, configuration, image):
+    def _validate_liveness(self, configuration, image, face):
 
         return self.liveness_service.validate(
             configuration= configuration,
-            image= image
+            image= image,
+            face= face
         )

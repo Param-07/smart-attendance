@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import or_, case, func
 
 from app.extensions import db
-from app.models import Teacher
+from app.models import Teacher, Account
 from app.core.pagination import PaginationResult
 from app.modules.common.database.base_repository import BaseRepository
 
@@ -40,10 +40,16 @@ class TeacherRepository(BaseRepository[Teacher]):
                 .first()
         )
     
-    def get_by_account_id(self, account_id) -> Teacher | None:
+    def get_by_account_public_uuid(self, account_public_uuid: str) -> Teacher | None:
+        account = (
+            db.session.query(Account)
+                .filter(Account.public_uuid == account_public_uuid)
+                .first()
+        )
+
         return (
             db.session.query(Teacher)
-                .filter(Teacher.account_id == account_id)
+                .filter(Teacher.account_id == account.id)
                 .first()
         )
     

@@ -19,7 +19,6 @@ class LivenessService:
             return None
 
         result = self.model.predict(image, face, configuration.liveness_threshold)
-        print(f"Liveness result: {result.is_live}, confidence: {result.confidence}")
 
         if not result.is_live:
             raise ConflictException(

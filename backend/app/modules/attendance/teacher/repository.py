@@ -59,7 +59,7 @@ class TeacherAttendanceRepository(BaseRepository[Attendance]):
     def get_open_attendance(
         self,
         teacher_id: int,
-        attendance_date: date,
+        attendance_date = date.today(),
     ) -> Attendance | None:
         return (
             db.session.query(Attendance)

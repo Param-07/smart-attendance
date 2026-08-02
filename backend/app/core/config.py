@@ -4,8 +4,6 @@ Flask Configuration
 Contains configuration classes for different
 application environments.
 
-Author: Parmanand Gupta
-Project: Smart Attendance
 """
 
 from __future__ import annotations

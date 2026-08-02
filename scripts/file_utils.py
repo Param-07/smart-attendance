@@ -2,9 +2,6 @@
 File Utilities
 
 Reusable utility functions used by the bootstrap script.
-
-Author: Parmanand Gupta
-Project: Smart Attendance
 """
 
 from pathlib import Path
