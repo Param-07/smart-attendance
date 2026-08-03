@@ -2,7 +2,6 @@
 Flask Application Factory
 
 Creates and configures the Flask application.
-
 """
 
 from __future__ import annotations
@@ -22,7 +21,12 @@ from app.modules.teacher.routes import teacher_bp
 from app.modules.school.route.school import school_bp
 from app.modules.attendance.teacher.routes import teacher_attendance_bp
 from app.modules.teacherFace.routes import teacher_face_bp
+
 from app.cli.seed import create_admin
+
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def create_app() -> Flask:
@@ -30,21 +34,35 @@ def create_app() -> Flask:
     Create and configure the Flask application.
     """
 
+    logger.info("Initializing Smart Attendance application.")
+
     app = Flask(__name__)
+
     app.cli.add_command(create_admin)
 
     # -----------------------------------------------------
     # Load Configuration
     # -----------------------------------------------------
 
+    logger.info("Loading application configuration.")
+
     environment = Environment.get(
         "FLASK_ENV",
         DEFAULT_ENVIRONMENT,
     )
 
+    logger.info(
+        "Running in '%s' environment.",
+        environment,
+    )
+
     config = CONFIG_MAP.get(environment)
 
     if config is None:
+        logger.critical(
+            "Unknown environment '%s'.",
+            environment,
+        )
         raise RuntimeError(
             f"Unknown environment: {environment}"
         )
@@ -52,45 +70,81 @@ def create_app() -> Flask:
     app.config.from_object(config)
 
     # -----------------------------------------------------
-    # Initialize Extensions & Error handlers
+    # Initialize Extensions
     # -----------------------------------------------------
 
+    logger.info("Initializing Flask extensions.")
+
     init_extensions(app)
+
+    # -----------------------------------------------------
+    # Register Models
+    # -----------------------------------------------------
+
+    logger.info("Loading database models.")
+
     from app import models
-    
+
+    # -----------------------------------------------------
+    # Register Exception Handlers
+    # -----------------------------------------------------
+
+    logger.info("Registering exception handlers.")
+
     register_exception_handlers(app)
+
+    # -----------------------------------------------------
+    # Test Database Connection
+    # -----------------------------------------------------
+
     if app.config.get("SQLALCHEMY_DATABASE_URI"):
+
+        logger.info("Testing database connection.")
+
         with app.app_context():
+
             test_database_connection()
+
+        logger.info("Database connection established successfully.")
+
     # -----------------------------------------------------
-    # Blueprint Registrations 
+    # Register Blueprints
     # -----------------------------------------------------
+
+    logger.info("Registering application blueprints.")
 
     app.register_blueprint(
         health_bp,
-        url_prefix = API_PREFIX
+        url_prefix=API_PREFIX,
     )
+
     app.register_blueprint(
         auth_bp,
-        url_prefix = API_PREFIX + "/auth"
+        url_prefix=f"{API_PREFIX}/auth",
     )
+
     app.register_blueprint(
         teacher_bp,
-        url_prefix = API_PREFIX + "/teachers"
+        url_prefix=f"{API_PREFIX}/teachers",
     )
 
     app.register_blueprint(
         school_bp,
-        url_prefix = API_PREFIX + "/schools"
+        url_prefix=f"{API_PREFIX}/schools",
     )
 
     app.register_blueprint(
         teacher_attendance_bp,
-        url_prefix = API_PREFIX + "/attendance"
+        url_prefix=f"{API_PREFIX}/attendance",
     )
 
     app.register_blueprint(
         teacher_face_bp,
-        url_prefix = API_PREFIX
+        url_prefix=API_PREFIX,
     )
+
+    logger.info(
+        "Smart Attendance application initialized successfully."
+    )
+
     return app
