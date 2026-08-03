@@ -4,8 +4,6 @@ Flask Configuration
 Contains configuration classes for different
 application environments.
 
-Author: Parmanand Gupta
-Project: Smart Attendance
 """
 
 from __future__ import annotations
@@ -38,7 +36,7 @@ class BaseConfig:
 
     JWT_SECRET_KEY = Environment.require("JWT_SECRET_KEY")
     
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=60)
 
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
 
@@ -55,6 +53,10 @@ class BaseConfig:
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    SUPABASE_URL = Environment.get("SUPABASE_URL")
+
+    SUPABASE_SERVICE_ROLE_KEY = Environment.get("SUPABASE_SERVICE_ROLE_KEY")
 
     # --------------------------------------------------
     # Upload

@@ -4,35 +4,47 @@ from ..enums import AttendanceStatus
 class AttendanceCheckInRequestSchema(Schema):
 
     latitude = fields.Decimal(
-        required=True,
-        as_string=True
+        required=False,
+        allow_none=True,
+        as_string=True,
+        load_default=None,
     )
 
     longitude = fields.Decimal(
-        required=True,
-        as_string=True
+        required=False,
+        allow_none=True,
+        as_string=True,
+        load_default=None,
     )
 
     accuracy = fields.Decimal(
-        required=True,
-        as_string=True
+        required=False,
+        allow_none=True,
+        as_string=True,
+        load_default=None,
     )
 
 class AttendanceCheckOutRequestSchema(Schema):
 
     latitude = fields.Decimal(
-        required=True,
-        as_string=True
+        required=False,
+        allow_none=True,
+        as_string=True,
+        load_default=None,
     )
 
     longitude = fields.Decimal(
-        required=True,
-        as_string=True
+        required=False,
+        allow_none=True,
+        as_string=True,
+        load_default=None,
     )
 
     accuracy = fields.Decimal(
-        required=True,
-        as_string=True
+        required=False,
+        allow_none=True,
+        as_string=True,
+        load_default=None,
     )
 
 class AttendanceListRequestSchema(Schema):

@@ -22,6 +22,7 @@ class BaseModel(db.Model):
         UUID(as_uuid=True),
         unique=True,
         nullable=False,
+        index=True,
         default=uuid.uuid4
     )
 

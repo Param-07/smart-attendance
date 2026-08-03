@@ -4,8 +4,6 @@ Smart Attendance Bootstrap
 Initializes the Smart Attendance project by creating
 the required folders and files.
 
-Author: Parmanand Gupta
-Project: Smart Attendance
 """
 
 from pathlib import Path

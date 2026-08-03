@@ -19,6 +19,7 @@ class TeacherResponseSchema(Schema):
     created_at = fields.DateTime()
     updated_at = fields.DateTime()
     is_active = fields.Boolean()
+    school_public_uuid = fields.String()
 
 class TeacherListResponseSchema(Schema):
 

@@ -3,7 +3,7 @@ from flask import Blueprint
 from .controller import TeacherAttendanceController
 
 teacher_attendance_bp = Blueprint(
-    "attendance",
+    "teacher_attendance",
     __name__
 )
 
@@ -20,14 +20,9 @@ teacher_attendance_bp.route(
 )(attendance_controller.check_out)
 
 teacher_attendance_bp.route(
-    "",
+    "/",
     methods=["GET"],
-)(attendance_controller.get_attendance_list)
-
-teacher_attendance_bp.route(
-    "/<uuid:public_uuid>",
-    methods=["GET"],
-)(attendance_controller.get_attendance)
+)(attendance_controller.get_my_attendance_list)
 
 teacher_attendance_bp.route(
     "/me/today",

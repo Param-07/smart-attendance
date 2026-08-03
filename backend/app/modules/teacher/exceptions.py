@@ -19,3 +19,8 @@ class UsernameAlreadyExistsException(ConflictException):
 
     def __init__(self):
         super().__init__("Username already exists.")
+
+class TeacherInactiveException(NotFoundException):
+    
+    def __init__(self):
+        super().__init__("Teacher is inactive.")

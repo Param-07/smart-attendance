@@ -32,6 +32,8 @@ class AdminAttendanceService:
         sort_by: str = "attendance_date",
         order: str = "desc",
     ) -> PaginationResult[Attendance]:
+
+        teacher_id = None
         
         if teacher_public_uuid is not None:
             teacher = self.teacher_repository.get_by_public_uuid(

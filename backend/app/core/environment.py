@@ -4,8 +4,6 @@ Environment Configuration
 Loads environment variables from the .env file and provides
 a centralized interface for accessing them throughout the application.
 
-Author: Parmanand Gupta
-Project: Smart Attendance
 """
 
 from __future__ import annotations

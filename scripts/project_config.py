@@ -4,8 +4,6 @@ Project Structure Definition
 This module contains the complete folder and file structure
 for the Smart Attendance project.
 
-Author: Parmanand Gupta
-Project: Smart Attendance
 """
 
 from pathlib import Path

@@ -7,6 +7,8 @@ from app.core.enums import UserRole
 from app.core.pagination import PaginationResult
 from app.modules.common.database.base_repository import BaseRepository
 from .exceptions import UsernameAlreadyExistsException, OfficialEmailAlreadyExistsException, EmployeeCodeAlreadyExistsException, TeacherNotFoundException
+from app.modules.school.repository.school import SchoolRepository
+from app.modules.school.exceptions import SchoolNotFoundException
 
 class TeacherService:
 
@@ -14,6 +16,7 @@ class TeacherService:
 
         self.teacher_repository = TeacherRepository()
         self.base_repository = BaseRepository(Account)
+        self.school_repository = SchoolRepository()
 
     def create_teacher(self ,data: dict) -> Teacher:
         try:
@@ -23,7 +26,12 @@ class TeacherService:
                 raise EmployeeCodeAlreadyExistsException()
             if self.teacher_repository.exists(official_email = data["official_email"]):
                 raise OfficialEmailAlreadyExistsException()
-            
+
+            school = self.school_repository.get_by_public_uuid(data["school_public_uuid"])
+
+            if school is None:
+                raise SchoolNotFoundException()
+
             password_hash = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
 
             #create Account
@@ -36,8 +44,8 @@ class TeacherService:
             self.base_repository.add(account)
             self.base_repository.flush()
 
-            print("account created")
             teacher = Teacher(
+                school_id = school.id,
                 account_id=account.id,
                 employee_code=data["employee_code"],
                 first_name=data["first_name"],

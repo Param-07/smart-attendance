@@ -10,6 +10,11 @@ class AttendanceAlreadyCheckedInException(ConflictException):
     def __init__(self):
         super().__init__("Attendance is already marked.")
 
+class AttendanceAlreadyCheckedOutException(ConflictException):
+
+    def __init__(self):
+        super().__init__("Attendance check out is alredy completed.")
+
 class AttendanceCheckInFailedException(ConflictException):
 
     def __init__(self):

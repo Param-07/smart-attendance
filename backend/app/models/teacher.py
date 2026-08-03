@@ -32,6 +32,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from app.models.account import Account
     from app.models import Attendance
+    from app.models import School
 
 class Teacher(BaseModel):
 
@@ -135,10 +136,24 @@ class Teacher(BaseModel):
     )
 
     attendances: Mapped[list["Attendance"]] = relationship(
-    "Attendance",
-    back_populates="teacher",
-    lazy="select",
-)
+        "Attendance",
+        back_populates="teacher",
+        lazy="select",
+    )
+
+    school_id: Mapped[int] = mapped_column(
+        ForeignKey(
+            "schools.id",
+            ondelete="RESTRICT",
+        ),
+        nullable=False,
+    )
+
+    school: Mapped["School"] = relationship(
+        "School",
+        back_populates="teachers",
+        lazy="select",
+    )
 
     def to_dict(self) -> dict:
         data = super().to_dict()
