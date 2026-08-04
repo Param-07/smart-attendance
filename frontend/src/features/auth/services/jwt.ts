@@ -1,5 +1,5 @@
 
-import type { JwtPayload } from "../types/auth.types";
+import type { AuthUser, JwtPayload } from "../types/auth.types";
 
 export function decodeAccessToken(
   token: string,
@@ -31,4 +31,14 @@ export function isTokenExpired(
   payload: JwtPayload,
 ): boolean {
   return payload.exp * 1000 <= Date.now();
+}
+
+export function mapPayloadToAuthUser(
+  payload: JwtPayload
+): AuthUser {
+  return {
+    id: payload.sub,
+    username: payload.username,
+    role: payload.role,
+  };
 }

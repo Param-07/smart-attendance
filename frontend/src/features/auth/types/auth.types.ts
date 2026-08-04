@@ -39,3 +39,8 @@ export interface AuthSession {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface RestoredSession {
+  session: AuthSession;
+  user: AuthUser;
+}

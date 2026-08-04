@@ -1,9 +1,13 @@
 import type { PropsWithChildren } from "react";
 
-type AppProvidersProps = PropsWithChildren;
+import AuthProvider from "@/features/auth/context/AuthProvider";
 
 export default function AppProviders({
   children,
-}: AppProvidersProps) {
-  return <>{children}</>;
+}: PropsWithChildren) {
+  return (
+    <AuthProvider>
+      {children}
+    </AuthProvider>
+  );
 }
