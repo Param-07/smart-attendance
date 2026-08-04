@@ -5,8 +5,8 @@ import {
 } from "react-router-dom";
 
 import AuthLayout from "@/app/layouts/AuthLayout";
-import AdminLayout from "@/app/layouts/AdminLayout";
-import TeacherLayout from "@/app/layouts/TeacherLayout";
+// import AdminLayout from "@/app/layouts/AdminLayout";
+// import TeacherLayout from "@/app/layouts/TeacherLayout";
 
 import LoginPage from "@/features/auth/LoginPage";
 import ProtectedRoute from "@/features/auth/routes/ProtectedRoute";
@@ -16,6 +16,7 @@ import TeacherDashboardPage from "@/features/teacher/DashboardPage";
 
 import UnauthorizedPage from "@/features/common/UnauthorizedPage";
 import NotFoundPage from "@/features/common/NotFoundPage";
+import AppLayout from "../layouts/AppLayout";
 
 const router = createBrowserRouter([
   {
@@ -38,7 +39,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/admin",
-        element: <AdminLayout />,
+        element: <AppLayout />,
         children: [
           {
             index: true,
@@ -58,7 +59,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/teacher",
-        element: <TeacherLayout />,
+        element: <AppLayout />,
         children: [
           {
             index: true,
