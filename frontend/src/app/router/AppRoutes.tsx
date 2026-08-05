@@ -11,7 +11,7 @@ import AuthLayout from "@/app/layouts/AuthLayout";
 import LoginPage from "@/features/auth/LoginPage";
 import ProtectedRoute from "@/features/auth/routes/ProtectedRoute";
 
-import AdminDashboardPage from "@/features/admin/DashboardPage";
+import AdminDashboardPage from "@/features/admin/dashboard/DashboardPage";
 import TeacherDashboardPage from "@/features/teacher/DashboardPage";
 
 import UnauthorizedPage from "@/features/common/UnauthorizedPage";
