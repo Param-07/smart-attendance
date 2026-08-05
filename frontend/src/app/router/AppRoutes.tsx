@@ -17,6 +17,7 @@ import TeacherDashboardPage from "@/features/teacher/DashboardPage";
 import UnauthorizedPage from "@/features/common/UnauthorizedPage";
 import NotFoundPage from "@/features/common/NotFoundPage";
 import AppLayout from "../layouts/AppLayout";
+import TeachersPage from "@/features/admin/teachers/TeachersPage";
 
 const router = createBrowserRouter([
   {
@@ -48,6 +49,26 @@ const router = createBrowserRouter([
           {
             path: "dashboard",
             element: <AdminDashboardPage />,
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
+    children: [
+      {
+        path: "/admin",
+        element: <AppLayout />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="teachers" replace />,
+          },
+          {
+            path: "teachers",
+            element: <TeachersPage />,
           },
         ],
       },

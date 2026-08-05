@@ -18,7 +18,7 @@ export default function PasswordInput(
     <Input
       {...props}
       type={showPassword ? "text" : "password"}
-      endAdornment={
+      rightIcon={
         <button
           type="button"
           onClick={togglePassword}
@@ -30,9 +30,11 @@ export default function PasswordInput(
           aria-pressed={showPassword}
           className="
             flex
+            h-8
+            w-8
             items-center
             justify-center
-            rounded
+            rounded-md
             text-gray-500
             transition-colors
             hover:text-gray-700

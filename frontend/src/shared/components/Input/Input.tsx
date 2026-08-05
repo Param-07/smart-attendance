@@ -9,7 +9,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       id,
       label,
       error,
-      endAdornment,
+      leftIcon,
+      rightIcon,
       className,
       disabled,
       ...props
@@ -32,6 +33,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
 
         <div className="relative">
+          {leftIcon && (
+            <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+              {leftIcon}
+            </div>
+          )}
+
           <input
             ref={ref}
             id={inputId}
@@ -39,23 +46,24 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             aria-invalid={Boolean(error)}
             aria-describedby={error ? errorId : undefined}
             className={clsx(
-              "w-full rounded-lg border px-3 py-2 text-sm",
-              "border-gray-300 bg-white text-gray-900",
+              "h-12 w-full rounded-xl border bg-white text-sm text-gray-900",
+              "border-gray-300",
               "placeholder:text-gray-400",
               "transition-colors duration-200",
               "focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20",
               "disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500",
+              leftIcon && "pl-10",
+              rightIcon && "pr-10",
               error &&
                 "border-red-500 focus:border-red-500 focus:ring-red-500/20",
-              endAdornment && "pr-10",
               className,
             )}
             {...props}
           />
 
-          {endAdornment && (
-            <div className="absolute inset-y-0 right-3 flex items-center">
-              {endAdornment}
+          {rightIcon && (
+            <div className="absolute inset-y-0 right-3 flex items-center text-gray-400">
+              {rightIcon}
             </div>
           )}
         </div>

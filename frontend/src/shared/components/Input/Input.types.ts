@@ -1,3 +1,5 @@
+// Input.types.ts
+
 import type {
   InputHTMLAttributes,
   ReactNode,
@@ -6,6 +8,12 @@ import type {
 export interface InputProps
   extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+
+  helperText?: string;
+
   error?: string;
-  endAdornment?: ReactNode;
+
+  leftIcon?: ReactNode;
+
+  rightIcon?: ReactNode;
 }
