@@ -1,5 +1,4 @@
-// src/features/admin/teachers/components/TeacherFilters.tsx
-
+import Card from "@/shared/components/Card";
 import { FilterX, Search } from "lucide-react";
 
 import Input from "@/shared/components/Input";
@@ -16,7 +15,7 @@ export default function TeacherFilters({
   onClearFilters,
 }: TeacherFiltersProps) {
   return (
-    <div className="rounded-2xl border border-border bg-surface px-5 py-4">
+    <Card className="rounded-2xl border border-border bg-surface px-5 py-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
         {/* Search */}
@@ -150,6 +149,6 @@ export default function TeacherFilters({
         </div>
 
       </div>
-    </div>
+    </Card>
   );
 }

@@ -5,19 +5,19 @@ import {
 } from "react-router-dom";
 
 import AuthLayout from "@/app/layouts/AuthLayout";
-// import AdminLayout from "@/app/layouts/AdminLayout";
-// import TeacherLayout from "@/app/layouts/TeacherLayout";
+import AppLayout from "@/app/layouts/AppLayout";
 
 import LoginPage from "@/features/auth/LoginPage";
 import ProtectedRoute from "@/features/auth/routes/ProtectedRoute";
 
 import AdminDashboardPage from "@/features/admin/dashboard/DashboardPage";
+import TeachersPage from "@/features/admin/teachers/TeachersPage";
+import TeacherDetailsPage from "@/features/admin/teachers/components/details/TeacherDetailsPage";
+
 import TeacherDashboardPage from "@/features/teacher/DashboardPage";
 
 import UnauthorizedPage from "@/features/common/UnauthorizedPage";
 import NotFoundPage from "@/features/common/NotFoundPage";
-import AppLayout from "../layouts/AppLayout";
-import TeachersPage from "@/features/admin/teachers/TeachersPage";
 
 const router = createBrowserRouter([
   {
@@ -25,6 +25,7 @@ const router = createBrowserRouter([
     element: <Navigate to="/login" replace />,
   },
 
+  // Authentication
   {
     element: <AuthLayout />,
     children: [
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
     ],
   },
 
+  // Admin
   {
     element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
     children: [
@@ -44,37 +46,34 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="dashboard" replace />,
+            element: (
+              <Navigate
+                to="dashboard"
+                replace
+              />
+            ),
           },
+
           {
             path: "dashboard",
             element: <AdminDashboardPage />,
           },
-        ],
-      },
-    ],
-  },
 
-  {
-    element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
-    children: [
-      {
-        path: "/admin",
-        element: <AppLayout />,
-        children: [
-          {
-            index: true,
-            element: <Navigate to="teachers" replace />,
-          },
           {
             path: "teachers",
             element: <TeachersPage />,
           },
+
+          {
+            path: "teachers/:publicUuid",
+            element: <TeacherDetailsPage />,
+          },
         ],
       },
     ],
   },
 
+  // Teacher
   {
     element: <ProtectedRoute allowedRoles={["TEACHER"]} />,
     children: [
@@ -84,8 +83,14 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="dashboard" replace />,
+            element: (
+              <Navigate
+                to="dashboard"
+                replace
+              />
+            ),
           },
+
           {
             path: "dashboard",
             element: <TeacherDashboardPage />,
@@ -95,11 +100,13 @@ const router = createBrowserRouter([
     ],
   },
 
+  // Unauthorized
   {
     path: "/unauthorized",
     element: <UnauthorizedPage />,
   },
 
+  // Not Found
   {
     path: "*",
     element: <NotFoundPage />,
