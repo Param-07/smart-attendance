@@ -1,12 +1,13 @@
 // src/features/admin/teachers/TeacherEditPage.tsx
 
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import TeacherForm from "./components/form/TeacherForm";
+import { getTeacher } from "./api/teacher.api";
 
+import type { Teacher } from "./Teachers.types";
 import type { TeacherFormData } from "./components/form/TeacherForm.types";
-
-import { teachers } from "./Teachers.constants";
 
 export default function TeacherEditPage() {
   const navigate = useNavigate();
@@ -15,16 +16,51 @@ export default function TeacherEditPage() {
     publicUuid: string;
   }>();
 
-  const teacher = teachers.find(
-    (item) => item.id === publicUuid,
-  );
+  const [teacher, setTeacher] =
+    useState<Teacher | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!teacher) {
+  useEffect(() => {
+    if (!publicUuid) {
+      setLoading(false);
+      setError("Teacher ID is missing.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    getTeacher(publicUuid)
+      .then(setTeacher)
+      .catch(() => {
+        setError("Unable to load teacher details.");
+      })
+      .finally(() => setLoading(false));
+  }, [publicUuid]);
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-semibold text-slate-900">
+          Loading Teacher...
+        </h1>
+      </div>
+    );
+  }
+
+  if (!teacher || error) {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-semibold text-slate-900">
           Teacher Not Found
         </h1>
+
+        {error && (
+          <p className="text-sm text-slate-500">
+            {error}
+          </p>
+        )}
 
         <Link
           to="/admin/teachers"

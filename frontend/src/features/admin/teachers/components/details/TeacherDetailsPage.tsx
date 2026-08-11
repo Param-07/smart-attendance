@@ -1,23 +1,67 @@
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import TeacherDetails from "./TeacherDetails";
-import { teachers } from "../../Teachers.constants";
+import { getTeacher } from "../../api/teacher.api";
+import type { Teacher } from "../../Teachers.types";
 
 export default function TeacherDetailsPage() {
   const { publicUuid } = useParams<{
     publicUuid: string;
   }>();
 
-  const teacher = teachers.find(
-    (item) => item.id === publicUuid,
-  );
+  const [teacher, setTeacher] = useState<Teacher | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!teacher) {
+  useEffect(() => {
+    if (!publicUuid) {
+      setLoading(false);
+      setError("Teacher ID is missing.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    getTeacher(publicUuid)
+      .then(setTeacher)
+      .catch((err) => {
+        if (axios.isAxiosError(err)) {
+          setError(
+            err.response?.data?.message ||
+              "Unable to load teacher details.",
+          );
+        } else {
+          setError("Unable to load teacher details.");
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [publicUuid]);
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-semibold text-slate-900">
+          Loading Teacher...
+        </h1>
+      </div>
+    );
+  }
+
+  if (!teacher || error) {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-semibold text-slate-900">
           Teacher Not Found
         </h1>
+
+        {error && (
+          <p className="text-sm text-slate-500">
+            {error}
+          </p>
+        )}
 
         <Link
           to="/admin/teachers"

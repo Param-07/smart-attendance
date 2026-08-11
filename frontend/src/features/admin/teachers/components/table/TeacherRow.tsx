@@ -11,9 +11,15 @@ export default function TeacherRow({
 }: TeacherRowProps) {
   const navigate = useNavigate();
 
-  const fullName = `${teacher.firstName} ${teacher.lastName}`;
+  console.log(teacher)
 
-  const initials = `${teacher.firstName.charAt(0)}${teacher.lastName.charAt(0)}`;
+  const firstName = teacher.firstName ?? "";
+  const lastName = teacher.lastName ?? "";
+  const fullName = [firstName, lastName]
+    .filter(Boolean)
+    .join(" ");
+
+  const initials = `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`;
 
   const isActive = teacher.status === "ACTIVE";
 
