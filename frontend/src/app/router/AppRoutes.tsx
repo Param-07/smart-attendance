@@ -13,6 +13,8 @@ import ProtectedRoute from "@/features/auth/routes/ProtectedRoute";
 import AdminDashboardPage from "@/features/admin/dashboard/DashboardPage";
 import TeachersPage from "@/features/admin/teachers/TeachersPage";
 import TeacherDetailsPage from "@/features/admin/teachers/components/details/TeacherDetailsPage";
+import TeacherCreatePage from "@/features/admin/teachers/TeacherCreatePage";
+import TeacherEditPage from "@/features/admin/teachers/TeacherEditPage";
 
 import TeacherDashboardPage from "@/features/teacher/DashboardPage";
 
@@ -68,6 +70,16 @@ const router = createBrowserRouter([
             path: "teachers/:publicUuid",
             element: <TeacherDetailsPage />,
           },
+
+          {
+            path: "teachers/new",
+            element: <TeacherCreatePage />,
+          },
+
+          {
+            path: "teachers/:publicUuid/edit",
+            element: <TeacherEditPage />
+          }
         ],
       },
     ],

@@ -51,7 +51,7 @@ export default function LoginForm() {
       const session = await loginUser(data);
 
       const user = createSession(session);
-      console.log("User session:", user);
+      
       establishSession(user);
 
       navigate(

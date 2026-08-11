@@ -16,6 +16,7 @@ export default function TeacherTable({
   hasNext,
   hasPrevious,
   onPageChange,
+  onToggleStatus
 }: TeacherTableProps) {
   return (
     <Card className="overflow-hidden rounded-2xl">
@@ -65,6 +66,7 @@ export default function TeacherTable({
               <TeacherRow
                 key={teacher.id}
                 teacher={teacher}
+                onToggleStatus={onToggleStatus}
               />
             ))}
           </tbody>

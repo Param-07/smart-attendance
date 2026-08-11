@@ -13,4 +13,6 @@ export interface TeacherTableProps {
   hasPrevious: boolean;
 
   onPageChange: (page: number) => void;
+
+  onToggleStatus: (teacher : Teacher) => void;
 }

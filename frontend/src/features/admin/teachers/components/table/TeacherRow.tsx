@@ -7,6 +7,7 @@ import type { TeacherRowProps } from "./TeacherRow.types";
 
 export default function TeacherRow({
   teacher,
+  onToggleStatus
 }: TeacherRowProps) {
   const navigate = useNavigate();
 
@@ -110,17 +111,11 @@ export default function TeacherRow({
               );
             }}
             onEdit={(selectedTeacher) => {
-              console.log(
-                "Edit teacher:",
-                selectedTeacher,
+              navigate(
+                `/admin/teachers/${selectedTeacher.id}/edit`,
               );
             }}
-            onToggleStatus={(selectedTeacher) => {
-              console.log(
-                "Toggle teacher status:",
-                selectedTeacher,
-              );
-            }}
+            onToggleStatus={onToggleStatus}
           />
         </div>
       </td>

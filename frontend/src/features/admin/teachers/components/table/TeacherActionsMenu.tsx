@@ -28,6 +28,9 @@ export default function TeacherActionsMenu({
   const triggerRef =
     useRef<HTMLButtonElement>(null);
 
+  const menuRef =
+    useRef<HTMLDivElement>(null);
+
   const [position, setPosition] = useState({
     top: 0,
     left: 0,
@@ -79,11 +82,17 @@ export default function TeacherActionsMenu({
     const handleOutsideClick = (
       event: MouseEvent,
     ) => {
+      const target = event.target as Node;
+
+      const clickedTrigger =
+        triggerRef.current?.contains(target);
+
+      const clickedMenu =
+        menuRef.current?.contains(target);
+
       if (
-        triggerRef.current &&
-        !triggerRef.current.contains(
-          event.target as Node,
-        )
+        !clickedTrigger &&
+        !clickedMenu
       ) {
         setIsOpen(false);
       }
@@ -190,6 +199,7 @@ export default function TeacherActionsMenu({
       {isOpen &&
         createPortal(
           <div
+            ref={menuRef}
             role="menu"
             className="
               fixed
