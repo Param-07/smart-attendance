@@ -1,14 +1,32 @@
+import type {
+  Department,
+  Designation,
+  EmploymentStatus,
+} from "../Teachers.types";
+
 export interface TeacherResponseDto {
   public_uuid: string;
+
   employee_code: string;
+
   first_name: string;
   middle_name?: string | null;
   last_name: string;
+  display_name: string;
+
   official_email: string;
-  mobile_number: string;
-  department: string;
-  designation: string;
-  employment_status: string;
+  mobile_number?: string | null;
+
+  department: Department;
+  designation: Designation;
+  employment_status: EmploymentStatus;
+
+  joining_date: string | null;
+
+  face_registered: boolean;
+
+  remarks: string | null;
+
   is_active: boolean;
 }
 

@@ -1,5 +1,3 @@
-// src/features/admin/dashboard/DashboardPage.tsx
-
 import PageHeader from "@/shared/components/PageHeader";
 import StatCard from "@/shared/components/StatCard";
 import ActionCenter from "./components/ActionCenter";

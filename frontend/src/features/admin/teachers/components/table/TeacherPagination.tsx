@@ -1,5 +1,3 @@
-// src/features/admin/teachers/components/TeacherPagination.tsx
-
 import {
   ChevronLeft,
   ChevronRight,

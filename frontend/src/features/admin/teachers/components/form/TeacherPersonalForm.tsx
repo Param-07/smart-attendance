@@ -1,5 +1,3 @@
-// src/features/admin/teachers/components/form/TeacherPersonalForm.tsx
-
 import Input from "@/shared/components/Input";
 
 interface TeacherPersonalFormProps {

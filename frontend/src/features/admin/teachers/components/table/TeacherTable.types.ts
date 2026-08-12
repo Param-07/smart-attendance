@@ -1,5 +1,3 @@
-// src/features/admin/teachers/components/TeacherTable.types.ts
-
 import type { Teacher } from "../../Teachers.types";
 
 export interface TeacherTableProps {

@@ -1,5 +1,3 @@
-// src/features/admin/teachers/components/TeacherTable.tsx
-
 import Card from "@/shared/components/Card";
 
 import TeacherPagination from "./TeacherPagination";

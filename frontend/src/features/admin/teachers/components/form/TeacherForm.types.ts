@@ -1,4 +1,9 @@
-import type { Teacher } from "../../Teachers.types";
+import type {
+  Department,
+  Designation,
+  EmploymentStatus,
+  Teacher,
+} from "../../Teachers.types";
 
 export interface TeacherFormProps {
   teacher?: Teacher;
@@ -21,10 +26,14 @@ export interface TeacherFormData {
 
   employeeCode: string;
 
+  department: Department | "";
+  designation: Designation | "";
+  employmentStatus: EmploymentStatus | "";
+
+  joiningDate: string;
+
   officialEmail: string;
   phone: string;
 
-  department: string;
-  designation: string;
-  employmentStatus: string;
+  remarks: string;
 }

@@ -17,35 +17,36 @@ export default function TeacherFilters({
   return (
     <Card className="rounded-2xl border border-border bg-surface px-5 py-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
         {/* Search */}
 
         <div className="w-full lg:max-w-sm">
           <Input
             placeholder="Search by name or employee code..."
             value={search}
-            onChange={(e) =>
-              onSearchChange?.(e.target.value)
+            onChange={(event) =>
+              onSearchChange?.(
+                event.target.value,
+              )
             }
             leftIcon={<Search size={18} />}
+            className="h-12"
           />
         </div>
 
         {/* Right Controls */}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-
           {/* Department */}
 
           <select
             value={department}
-            onChange={(e) =>
+            onChange={(event) =>
               onDepartmentChange?.(
-                e.target.value,
+                event.target.value,
               )
             }
             className="
-              h-9
+              h-12
               w-full
               rounded-xl
               border
@@ -53,6 +54,7 @@ export default function TeacherFilters({
               bg-surface
               px-4
               text-sm
+              text-slate-700
               transition-colors
               focus:border-primary
               focus:outline-none
@@ -65,34 +67,61 @@ export default function TeacherFilters({
               Department
             </option>
 
-            <option value="SCIENCE">
-              Science
+            <option value="Administration">
+              Administration
             </option>
 
-            <option value="MATHEMATICS">
+            <option value="Mathematics">
               Mathematics
             </option>
 
-            <option value="ENGLISH">
+            <option value="Science">
+              Science
+            </option>
+
+            <option value="English">
               English
             </option>
 
-            <option value="COMMERCE">
-              Commerce
+            <option value="Social Science">
+              Social Science
+            </option>
+
+            <option value="Computer">
+              Computer
+            </option>
+
+            <option value="Sports">
+              Sports
+            </option>
+
+            <option value="Art">
+              Art
+            </option>
+
+            <option value="Music">
+              Music
+            </option>
+
+            <option value="Library">
+              Library
             </option>
           </select>
 
-          {/* Status */}
+          {/* System Status */}
 
           <select
             value={status}
-            onChange={(e) =>
+            onChange={(event) =>
               onStatusChange?.(
-                e.target.value,
+                event.target.value as
+                  | ""
+                  | "ACTIVE"
+                  | "INACTIVE",
               )
             }
             className="
-              h-9
+              h-12
               w-full
               rounded-xl
               border
@@ -100,6 +129,7 @@ export default function TeacherFilters({
               bg-surface
               px-4
               text-sm
+              text-slate-700
               transition-colors
               focus:border-primary
               focus:outline-none
@@ -130,10 +160,11 @@ export default function TeacherFilters({
               inline-flex
               h-12
               items-center
+              justify-center
               gap-2
               whitespace-nowrap
               rounded-xl
-              px-2
+              px-3
               text-sm
               font-medium
               text-slate-600
@@ -143,11 +174,11 @@ export default function TeacherFilters({
           >
             <FilterX size={18} />
 
-            <span>Clear Filters</span>
+            <span>
+              Clear Filters
+            </span>
           </button>
-
         </div>
-
       </div>
     </Card>
   );

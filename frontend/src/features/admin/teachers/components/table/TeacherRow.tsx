@@ -4,24 +4,46 @@ import { useNavigate } from "react-router-dom";
 import TeacherActionsMenu from "./TeacherActionsMenu";
 
 import type { TeacherRowProps } from "./TeacherRow.types";
+import type { EmploymentStatus } from "../../Teachers.types";
+
+const employmentStatusLabels: Record<
+  EmploymentStatus,
+  string
+> = {
+  ACTIVE: "Employed",
+  ON_LEAVE: "On Leave",
+  SUSPENDED: "Suspended",
+  RESIGNED: "Resigned",
+  RETIRED: "Retired",
+};
 
 export default function TeacherRow({
   teacher,
-  onToggleStatus
+  onToggleStatus,
 }: TeacherRowProps) {
   const navigate = useNavigate();
 
-  console.log(teacher)
+  const firstName =
+    teacher.firstName ?? "";
 
-  const firstName = teacher.firstName ?? "";
-  const lastName = teacher.lastName ?? "";
-  const fullName = [firstName, lastName]
+  const middleName =
+    teacher.middleName ?? "";
+
+  const lastName =
+    teacher.lastName ?? "";
+
+  const fullName = [
+    firstName,
+    middleName,
+    lastName,
+  ]
     .filter(Boolean)
     .join(" ");
 
-  const initials = `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`;
+  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`;
 
-  const isActive = teacher.status === "ACTIVE";
+  const isActive =
+    teacher.status === "ACTIVE";
 
   return (
     <tr className="transition-colors hover:bg-slate-50">
@@ -78,7 +100,9 @@ export default function TeacherRow({
               className="shrink-0 text-slate-400"
             />
 
-            <span>{teacher.phone}</span>
+            <span>
+              {teacher.phone}
+            </span>
           </div>
         </div>
       </td>
@@ -86,23 +110,39 @@ export default function TeacherRow({
       {/* Status */}
 
       <td className="px-6 py-4">
-        <span
-          className={
-            isActive
-              ? "inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700"
-              : "inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
-          }
-        >
+        <div className="flex flex-col items-start gap-1.5">
+          {/* System Status */}
+
           <span
             className={
               isActive
-                ? "h-1.5 w-1.5 rounded-full bg-green-500"
-                : "h-1.5 w-1.5 rounded-full bg-slate-400"
+                ? "inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700"
+                : "inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
             }
-          />
+          >
+            <span
+              className={
+                isActive
+                  ? "h-1.5 w-1.5 rounded-full bg-green-500"
+                  : "h-1.5 w-1.5 rounded-full bg-slate-400"
+              }
+            />
 
-          {isActive ? "Active" : "Inactive"}
-        </span>
+            {isActive
+              ? "Active"
+              : "Inactive"}
+          </span>
+
+          {/* Employment Status */}
+
+          <span className="text-xs text-slate-500">
+            {
+              employmentStatusLabels[
+                teacher.employmentStatus
+              ]
+            }
+          </span>
+        </div>
       </td>
 
       {/* Actions */}
@@ -121,7 +161,9 @@ export default function TeacherRow({
                 `/admin/teachers/${selectedTeacher.id}/edit`,
               );
             }}
-            onToggleStatus={onToggleStatus}
+            onToggleStatus={
+              onToggleStatus
+            }
           />
         </div>
       </td>

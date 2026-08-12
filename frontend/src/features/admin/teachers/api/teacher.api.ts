@@ -1,67 +1,299 @@
 import apiClient from "@/shared/api/apiClient";
-
-import type { Teacher } from "../Teachers.types";
 import type { ApiResponse } from "@/shared/api/apiTypes";
 
-import type { TeacherListResponseDto, TeacherResponseDto } from "./teacher.api.types"
+import type {
+  Department,
+  Designation,
+  EmploymentStatus,
+  Teacher,
+} from "../Teachers.types";
 
-function mapTeacher(payload: TeacherResponseDto): Teacher {
-    console.log(payload)
+import type {
+  TeacherListResponseDto,
+  TeacherResponseDto,
+} from "./teacher.api.types";
+
+// Enum mappings
+
+const departmentMap: Record<
+  string,
+  Department
+> = {
+  ADMINISTRATION: "Administration",
+  MATHEMATICS: "Mathematics",
+  SCIENCE: "Science",
+  ENGLISH: "English",
+  SOCIAL_SCIENCE: "Social Science",
+  COMPUTER: "Computer",
+  SPORTS: "Sports",
+  ART: "Art",
+  MUSIC: "Music",
+  LIBRARY: "Library",
+};
+
+const designationMap: Record<
+  string,
+  Designation
+> = {
+  PRINCIPAL: "Principal",
+  VICE_PRINCIPAL: "Vice Principal",
+  HOD: "Head of Department",
+  TEACHER: "Teacher",
+  ASSISTANT_TEACHER: "Assistant Teacher",
+  SPORTS_COACH: "Sports Coach",
+  LIBRARIAN: "Librarian",
+  ADMINISTRATOR: "Administrator",
+};
+
+const employmentStatusMap: Record<
+  string,
+  EmploymentStatus
+> = {
+  ACTIVE: "ACTIVE",
+  ON_LEAVE: "ON_LEAVE",
+  SUSPENDED: "SUSPENDED",
+  RESIGNED: "RESIGNED",
+  RETIRED: "RETIRED",
+};
+
+// Helpers
+
+function normalizeEnumKey(
+  value: string,
+): string {
+  if (value.includes(".")) {
+    return value.split(".").pop() ?? value;
+  }
+
+  return value;
+}
+
+
+function mapDepartment(
+  value: string,
+): Department {
+  const key = normalizeEnumKey(value);
+
+  return (
+    departmentMap[key] ??
+    (value as Department)
+  );
+}
+
+
+function mapDesignation(
+  value: string,
+): Designation {
+  const key = normalizeEnumKey(value);
+
+  return (
+    designationMap[key] ??
+    (value as Designation)
+  );
+}
+
+
+function mapEmploymentStatus(
+  value: string,
+): EmploymentStatus {
+  const key = normalizeEnumKey(value);
+
+  return (
+    employmentStatusMap[key] ??
+    (value as EmploymentStatus)
+  );
+}
+
+// Teacher mapping
+
+function mapTeacher(
+  payload: TeacherResponseDto,
+): Teacher {
   return {
     id: payload.public_uuid,
-    employeeCode: payload.employee_code,
-    firstName: payload.first_name,
-    middleName: payload.middle_name ?? "",
-    lastName: payload.last_name,
-    designation: payload.designation.replace("Designation.", ""),
-    department: payload.department.replace("Department.", ""),
-    email: payload.official_email,
-    phone: payload.mobile_number,
-    status: payload.is_active ? "ACTIVE" : "INACTIVE",
+
+    employeeCode:
+      payload.employee_code,
+
+    firstName:
+      payload.first_name,
+
+    middleName:
+      payload.middle_name ?? "",
+
+    lastName:
+      payload.last_name,
+
+    displayName:
+      payload.display_name,
+
+    email:
+      payload.official_email,
+
+    phone:
+      payload.mobile_number ?? "",
+
+    department:
+      mapDepartment(
+        payload.department,
+      ),
+
+    designation:
+      mapDesignation(
+        payload.designation,
+      ),
+
+    employmentStatus:
+      mapEmploymentStatus(
+        payload.employment_status,
+      ),
+
+    joiningDate:
+      payload.joining_date,
+
+    faceRegistered:
+      payload.face_registered,
+
+    remarks:
+      payload.remarks,
+
+    status:
+      payload.is_active
+        ? "ACTIVE"
+        : "INACTIVE",
   };
 }
+
+
+// Get single teacher
 
 export async function getTeacher(
   publicUuid: string,
 ): Promise<Teacher> {
-  const response = await apiClient.get<
-    ApiResponse<TeacherResponseDto>
-  >(`/teachers/${publicUuid}`);
+  const response =
+    await apiClient.get<
+      ApiResponse<TeacherResponseDto>
+    >(
+      `/teachers/${publicUuid}`,
+    );
 
-  return mapTeacher(response.data.data);
+  return mapTeacher(
+    response.data.data,
+  );
 }
+
+
+// Update teacher activation
 
 export async function updateTeacherActivation(
   publicUuid: string,
   isActive: boolean,
 ): Promise<Teacher> {
-  const response = await apiClient.patch<
-    ApiResponse<TeacherResponseDto>
-  >(`/teachers/${publicUuid}/activation`, {
-    is_active: isActive,
-  });
+  const response =
+    await apiClient.patch<
+      ApiResponse<TeacherResponseDto>
+    >(
+      `/teachers/${publicUuid}/activation`,
+      {
+        is_active: isActive,
+      },
+    );
 
-  return mapTeacher(response.data.data);
+  return mapTeacher(
+    response.data.data,
+  );
 }
 
-export async function getTeachers(
+
+// Update teacher
+
+export async function updateTeacher(
+  publicUuid: string,
+  data: Partial<{
+    employee_code: string;
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
+    display_name: string;
+    official_email: string;
+    mobile_number: string | null;
+    department: Department;
+    designation: Designation;
+    employment_status: EmploymentStatus;
+    joining_date: string;
+    remarks: string | null;
+  }>,
+): Promise<Teacher> {
+  const response =
+    await apiClient.put<
+      ApiResponse<TeacherResponseDto>
+    >(
+      `/teachers/${publicUuid}`,
+      data,
+    );
+
+  return mapTeacher(
+    response.data.data,
+  );
+}
+
+
+// Get teachers
+
+export interface GetTeachersParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  department?: string;
+  status?: "" | "ACTIVE" | "INACTIVE";
+}
+
+export async function getTeachers({
   page = 1,
   pageSize = 20,
-): Promise<{
+  search = "",
+  department = "",
+  status = "",
+}: GetTeachersParams = {}): Promise<{
   teachers: Teacher[];
   pagination: TeacherListResponseDto["pagination"];
 }> {
-  const response = await apiClient.get<
-    ApiResponse<TeacherListResponseDto>
-  >("/teachers/", {
-    params: {
-      page,
-      page_size: pageSize,
-    },
-  });
+  const params: Record<
+    string,
+    string | number
+  > = {
+    page,
+    page_size: pageSize,
+  };
+
+  if (search.trim()) {
+    params.search = search.trim();
+  }
+
+  if (department) {
+    params.department = department;
+  }
+
+  if (status) {
+    params.is_active =
+      status === "ACTIVE"
+        ? "true"
+        : "false";
+  }
+
+  const response =
+    await apiClient.get<
+      ApiResponse<TeacherListResponseDto>
+    >("/teachers/", {
+      params,
+    });
 
   return {
-    teachers: response.data.data.items.map(mapTeacher),
-    pagination: response.data.data.pagination,
+    teachers:
+      response.data.data.items.map(
+        mapTeacher,
+      ),
+    pagination:
+      response.data.data.pagination,
   };
 }

@@ -1,5 +1,3 @@
-// src/features/admin/teachers/components/form/TeacherForm.tsx
-
 import { useState } from "react";
 
 import Card from "@/shared/components/Card";
@@ -8,6 +6,7 @@ import Button from "@/shared/components/Button";
 import TeacherPersonalForm from "./TeacherPersonalForm";
 import TeacherEmploymentForm from "./TeacherEmploymentForm";
 import TeacherContactForm from "./TeacherContactForm";
+import TeacherAdditionalForm from "./TeacherAdditionalForm";
 
 import type {
   TeacherFormData,
@@ -17,6 +16,13 @@ import type {
 interface FormErrors {
   firstName?: string;
   lastName?: string;
+
+  employeeCode?: string;
+  department?: string;
+  designation?: string;
+  employmentStatus?: string;
+  joiningDate?: string;
+
   officialEmail?: string;
   phone?: string;
 }
@@ -30,19 +36,17 @@ export default function TeacherForm({
 }: TeacherFormProps) {
   const [formData, setFormData] =
     useState<TeacherFormData>({
-      firstName: teacher?.firstName ?? "",
-      middleName: teacher?.middleName ?? "",
-      lastName: teacher?.lastName ?? "",
+      firstName:
+        teacher?.firstName ?? "",
+
+      middleName:
+        teacher?.middleName ?? "",
+
+      lastName:
+        teacher?.lastName ?? "",
 
       employeeCode:
         teacher?.employeeCode ?? "",
-
-      officialEmail:
-        teacher?.email ??
-        teacher?.email ??
-        "",
-
-      phone: teacher?.phone ?? "",
 
       department:
         teacher?.department ?? "",
@@ -51,7 +55,19 @@ export default function TeacherForm({
         teacher?.designation ?? "",
 
       employmentStatus:
-        teacher?.status ?? "",
+        teacher?.employmentStatus ?? "",
+
+      joiningDate:
+        teacher?.joiningDate ?? "",
+
+      officialEmail:
+        teacher?.email ?? "",
+
+      phone:
+        teacher?.phone ?? "",
+
+      remarks:
+        teacher?.remarks ?? "",
     });
 
   const [errors, setErrors] =
@@ -85,6 +101,31 @@ export default function TeacherForm({
     if (!formData.lastName.trim()) {
       nextErrors.lastName =
         "Last name is required.";
+    }
+
+    if (!formData.employeeCode.trim()) {
+      nextErrors.employeeCode =
+        "Employee code is required.";
+    }
+
+    if (!formData.department) {
+      nextErrors.department =
+        "Department is required.";
+    }
+
+    if (!formData.designation) {
+      nextErrors.designation =
+        "Designation is required.";
+    }
+
+    if (!formData.employmentStatus) {
+      nextErrors.employmentStatus =
+        "Employment status is required.";
+    }
+
+    if (!formData.joiningDate) {
+      nextErrors.joiningDate =
+        "Joining date is required.";
     }
 
     if (!formData.officialEmail.trim()) {
@@ -146,8 +187,10 @@ export default function TeacherForm({
               )
             }
             errors={{
-              firstName: errors.firstName,
-              lastName: errors.lastName,
+              firstName:
+                errors.firstName,
+              lastName:
+                errors.lastName,
             }}
           />
 
@@ -163,6 +206,9 @@ export default function TeacherForm({
             }
             employmentStatus={
               formData.employmentStatus
+            }
+            joiningDate={
+              formData.joiningDate
             }
             onEmployeeCodeChange={(value) =>
               updateField(
@@ -190,6 +236,24 @@ export default function TeacherForm({
                 value,
               )
             }
+            onJoiningDateChange={(value) =>
+              updateField(
+                "joiningDate",
+                value,
+              )
+            }
+            errors={{
+              employeeCode:
+                errors.employeeCode,
+              department:
+                errors.department,
+              designation:
+                errors.designation,
+              employmentStatus:
+                errors.employmentStatus,
+              joiningDate:
+                errors.joiningDate,
+            }}
           />
 
           <div className="border-t border-border" />
@@ -206,7 +270,10 @@ export default function TeacherForm({
               )
             }
             onPhoneChange={(value) =>
-              updateField("phone", value)
+              updateField(
+                "phone",
+                value,
+              )
             }
             errors={{
               officialEmail:
@@ -214,10 +281,20 @@ export default function TeacherForm({
               phone: errors.phone,
             }}
           />
+
+          <div className="border-t border-border" />
+
+          <TeacherAdditionalForm
+            remarks={formData.remarks}
+            onRemarksChange={(value) =>
+              updateField(
+                "remarks",
+                value,
+              )
+            }
+          />
         </div>
       </Card>
-
-      {/* Actions */}
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Button

@@ -1,9 +1,14 @@
+export type TeacherSystemStatus =
+  | ""
+  | "ACTIVE"
+  | "INACTIVE";
+
 export interface TeacherFiltersProps {
   search?: string;
 
   department?: string;
 
-  status?: string;
+  status?: TeacherSystemStatus;
 
   onSearchChange?: (
     value: string,
@@ -14,7 +19,7 @@ export interface TeacherFiltersProps {
   ) => void;
 
   onStatusChange?: (
-    value: string,
+    value: TeacherSystemStatus,
   ) => void;
 
   onClearFilters?: () => void;

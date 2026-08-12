@@ -1,5 +1,3 @@
-// src/app/layouts/AppLayout.tsx
-
 import { Outlet } from "react-router-dom";
 
 import Sidebar from "@/features/navigation/components/Sidebar";

@@ -1,5 +1,3 @@
-// src/features/auth/context/AuthContext.tsx
-
 import { createContext } from "react";
 
 import type { AuthUser } from "../types/auth.types";

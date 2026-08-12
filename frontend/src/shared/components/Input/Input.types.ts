@@ -1,5 +1,3 @@
-// Input.types.ts
-
 import type {
   InputHTMLAttributes,
   ReactNode,

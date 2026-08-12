@@ -1,5 +1,3 @@
-// src/features/admin/teachers/components/table/TeacherActionsMenu.tsx
-
 import {
   useEffect,
   useRef,
