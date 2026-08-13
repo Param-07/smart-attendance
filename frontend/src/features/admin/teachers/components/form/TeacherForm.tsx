@@ -25,6 +25,10 @@ interface FormErrors {
 
   officialEmail?: string;
   phone?: string;
+
+  username?: string;
+  password?: string;
+  schoolPublicUuid?: string;
 }
 
 export default function TeacherForm({
@@ -68,6 +72,10 @@ export default function TeacherForm({
 
       remarks:
         teacher?.remarks ?? "",
+
+      username: "",
+      password: "",
+      schoolPublicUuid: "",
     });
 
   const [errors, setErrors] =
@@ -136,6 +144,30 @@ export default function TeacherForm({
     if (!formData.phone.trim()) {
       nextErrors.phone =
         "Phone number is required.";
+    }
+
+    if (mode === "create") {
+      if (!formData.username.trim()) {
+        nextErrors.username =
+          "Username is required.";
+      }
+
+      if (!formData.password.trim()) {
+        nextErrors.password =
+          "Password is required.";
+      }
+
+      if (
+        formData.password.length < 8
+      ) {
+        nextErrors.password =
+          "Password must be at least 8 characters.";
+      }
+
+      if (!formData.schoolPublicUuid) {
+        nextErrors.schoolPublicUuid =
+          "School is required.";
+      }
     }
 
     setErrors(nextErrors);
@@ -293,6 +325,109 @@ export default function TeacherForm({
               )
             }
           />
+
+          {mode === "create" && (
+            <>
+              <div className="border-t border-border" />
+
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">
+                  Account Information
+                </h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      value={
+                        formData.username
+                      }
+                      onChange={(e) =>
+                        updateField(
+                          "username",
+                          e.target.value,
+                        )
+                      }
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        errors.username
+                          ? "border-red-300"
+                          : "border-slate-300"
+                      }`}
+                      placeholder="Enter username"
+                    />
+                    {errors.username && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.username}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      value={
+                        formData.password
+                      }
+                      onChange={(e) =>
+                        updateField(
+                          "password",
+                          e.target.value,
+                        )
+                      }
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        errors.password
+                          ? "border-red-300"
+                          : "border-slate-300"
+                      }`}
+                      placeholder="Enter password (min 8 characters)"
+                    />
+                    {errors.password && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.password}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      School
+                    </label>
+                    <input
+                      type="text"
+                      value={
+                        formData.schoolPublicUuid
+                      }
+                      onChange={(e) =>
+                        updateField(
+                          "schoolPublicUuid",
+                          e.target.value,
+                        )
+                      }
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        errors.schoolPublicUuid
+                          ? "border-red-300"
+                          : "border-slate-300"
+                      }`}
+                      placeholder="Enter school UUID"
+                    />
+                    {errors.schoolPublicUuid && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {
+                          errors.schoolPublicUuid
+                        }
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </Card>
 

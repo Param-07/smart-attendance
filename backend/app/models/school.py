@@ -1,22 +1,29 @@
-from sqlalchemy import String, UniqueConstraint, text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from app.models import BaseModel, Teacher
+from sqlalchemy import String, UniqueConstraint, text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.models.base_model import BaseModel
 
 if TYPE_CHECKING:
-    from app.models import SchoolConfiguration
-    
+    from app.models.account import Account
+    from app.models.school_configuration import SchoolConfiguration
+    from app.models.teacher import Teacher
+
+
 class School(BaseModel):
     __tablename__ = "schools"
 
     __table_args__ = (
         UniqueConstraint(
             "code",
-            name="uq_school_code"
+            name="uq_school_code",
         ),
     )
+
+    # Basic Information
 
     name: Mapped[str] = mapped_column(
         String(200),
@@ -44,6 +51,8 @@ class School(BaseModel):
         nullable=True,
     )
 
+    # Address
+
     address: Mapped[str | None] = mapped_column(
         String(500),
         nullable=True,
@@ -51,7 +60,7 @@ class School(BaseModel):
 
     city: Mapped[str | None] = mapped_column(
         String(100),
-        nullable=True
+        nullable=True,
     )
 
     state: Mapped[str | None] = mapped_column(
@@ -62,13 +71,15 @@ class School(BaseModel):
     country: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
-        server_default=text("'India'")
+        server_default=text("'India'"),
     )
 
     postal_code: Mapped[str | None] = mapped_column(
         String(20),
         nullable=True,
     )
+
+    # Branding / Configuration
 
     logo_path: Mapped[str | None] = mapped_column(
         String(500),
@@ -78,22 +89,30 @@ class School(BaseModel):
     timezone: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
-        server_default=text("'Asia/Kolkata'")
+        server_default=text("'Asia/Kolkata'"),
     )
 
-    configuration: Mapped["SchoolConfiguration"] = relationship(
+    # Relationships
+
+    configuration: Mapped["SchoolConfiguration | None"] = relationship(
         "SchoolConfiguration",
         back_populates="school",
         uselist=False,
         cascade="all, delete-orphan",
         passive_deletes=True,
-        lazy="joined"
+        lazy="joined",
+    )
+
+    accounts: Mapped[list["Account"]] = relationship(
+        "Account",
+        back_populates="school",
+        lazy="select",
     )
 
     teachers: Mapped[list["Teacher"]] = relationship(
         "Teacher",
         back_populates="school",
-        lazy="select"
+        lazy="select",
     )
 
     def __repr__(self) -> str:

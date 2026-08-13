@@ -13,6 +13,41 @@ import type {
   TeacherResponseDto,
 } from "./teacher.api.types";
 
+import type { TeacherFormData } from "../components/form/TeacherForm.types";
+
+// Create teacher
+
+export async function createTeacher(
+  formData: TeacherFormData,
+): Promise<Teacher> {
+  const payload = {
+    username: formData.username,
+    password: formData.password,
+    employee_code: formData.employeeCode,
+    first_name: formData.firstName,
+    middle_name: formData.middleName || null,
+    last_name: formData.lastName,
+    display_name: `${formData.firstName} ${formData.lastName}`,
+    official_email: formData.officialEmail,
+    mobile_number: formData.phone || null,
+    department: formData.department,
+    designation: formData.designation,
+    joining_date: formData.joiningDate,
+    remarks: formData.remarks || null,
+    school_public_uuid:
+      formData.schoolPublicUuid,
+  };
+
+  const response =
+    await apiClient.post<
+      ApiResponse<TeacherResponseDto>
+    >("/teachers/", payload);
+
+  return mapTeacher(
+    response.data.data,
+  );
+}
+
 // Enum mappings
 
 const departmentMap: Record<

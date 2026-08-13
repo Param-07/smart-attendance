@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, Integer, String, text
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import AccountStatus, UserRole
 from app.models.base_model import BaseModel
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from app.models.school import School
     from app.models.teacher import Teacher
+
 
 class Account(BaseModel):
     """
@@ -52,13 +54,13 @@ class Account(BaseModel):
         Integer,
         default=0,
         nullable=False,
-        server_default="0"
+        server_default="0",
     )
 
     password_reset_required: Mapped[bool] = mapped_column(
         default=True,
         nullable=False,
-        server_default=text("true")
+        server_default=text("true"),
     )
 
     last_login: Mapped[datetime | None] = mapped_column(
@@ -81,20 +83,48 @@ class Account(BaseModel):
         nullable=True,
     )
 
-    teacher: Mapped["Teacher"] = relationship(
+    # School
+
+    school_id: Mapped[int] = mapped_column(
+        ForeignKey(
+            "schools.id",
+            ondelete="RESTRICT",
+        ),
+        nullable=False,
+        index=True,
+    )
+
+    school: Mapped["School"] = relationship(
+        "School",
+        back_populates="accounts",
+        lazy="select",
+    )
+
+    # Teacher profile
+    #
+    # Only teacher accounts have an associated Teacher record.
+    # Admin accounts will have teacher=None.
+
+    teacher: Mapped["Teacher | None"] = relationship(
         "Teacher",
         back_populates="account",
         uselist=False,
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )
 
     def to_dict(self) -> dict:
         data = super().to_dict()
+
         data.update({
             "username": self.username,
             "role": self.role.value,
             "account_status": self.account_status.value,
             "password_reset_required": self.password_reset_required,
-            "last_login": self.last_login.isoformat() if self.last_login else None,
+            "last_login": (
+                self.last_login.isoformat()
+                if self.last_login
+                else None
+            ),
         })
+
         return data
