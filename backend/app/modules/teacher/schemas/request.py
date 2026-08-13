@@ -66,7 +66,13 @@ class TeacherCreateRequestSchema(Schema):
         allow_none=True,
     )
 
-    school_public_uuid = fields.String(required= True)
+    # Required logically for SUPER_ADMIN.
+    # Ignored for SCHOOL_ADMIN because the
+    # school is derived from Account.school_id.
+
+    school_public_uuid = fields.String(
+        load_default=None,
+    )
 
 class TeacherUpdateRequestSchema(Schema):
 

@@ -1,14 +1,22 @@
-from sqlalchemy import or_
-
 from .repository import TeacherRepository
+
 from app.extensions import bcrypt
 from app.models import Account, Teacher
 from app.core.enums import UserRole
-from app.core.pagination import PaginationResult
 from app.modules.common.database.base_repository import BaseRepository
-from .exceptions import UsernameAlreadyExistsException, OfficialEmailAlreadyExistsException, EmployeeCodeAlreadyExistsException, TeacherNotFoundException
 from app.modules.school.repository.school import SchoolRepository
-from app.modules.school.exceptions import SchoolNotFoundException
+
+from .exceptions import (
+    UsernameAlreadyExistsException,
+    OfficialEmailAlreadyExistsException,
+    EmployeeCodeAlreadyExistsException,
+    TeacherNotFoundException,
+)
+
+from app.modules.school.exceptions import (
+    SchoolNotFoundException,
+)
+
 
 class TeacherService:
 
@@ -18,35 +26,88 @@ class TeacherService:
         self.base_repository = BaseRepository(Account)
         self.school_repository = SchoolRepository()
 
-    def create_teacher(self ,data: dict) -> Teacher:
+    # Create Teacher
+
+    def create_teacher(
+        self,
+        data: dict,
+        account: Account,
+    ) -> Teacher:
+
         try:
-            if self.base_repository.exists(username = data["username"]):
+            if self.base_repository.exists(
+                username=data["username"]
+            ):
                 raise UsernameAlreadyExistsException()
-            if self.teacher_repository.exists(employee_code = data["employee_code"]):
+
+            if self.teacher_repository.exists(
+                employee_code=data["employee_code"]
+            ):
                 raise EmployeeCodeAlreadyExistsException()
-            if self.teacher_repository.exists(official_email = data["official_email"]):
+
+            if self.teacher_repository.exists(
+                official_email=data["official_email"]
+            ):
                 raise OfficialEmailAlreadyExistsException()
 
-            school = self.school_repository.get_by_public_uuid(data["school_public_uuid"])
+            # Determine School
+
+            if account.role == UserRole.SCHOOL_ADMIN:
+
+                if account.school_id is None:
+                    raise SchoolNotFoundException()
+
+                school = self.school_repository.get_by_id(
+                    account.school_id
+                )
+
+            elif account.role == UserRole.SUPER_ADMIN:
+
+                school_public_uuid = data.get(
+                    "school_public_uuid"
+                )
+
+                if not school_public_uuid:
+                    raise SchoolNotFoundException()
+
+                school = self.school_repository.get_by_public_uuid(
+                    school_public_uuid
+                )
+
+            else:
+                raise TeacherNotFoundException()
 
             if school is None:
                 raise SchoolNotFoundException()
 
-            password_hash = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+            # Create Account
 
-            #create Account
-            account = Account(
-                username=data["username"],
-                password_hash=password_hash,
-                role=UserRole.TEACHER
+            password_hash = (
+                bcrypt
+                .generate_password_hash(
+                    data["password"]
+                )
+                .decode("utf-8")
             )
 
-            self.base_repository.add(account)
+            teacher_account = Account(
+                username=data["username"],
+                password_hash=password_hash,
+                role=UserRole.TEACHER,
+                school_id=school.id,
+            )
+
+            self.base_repository.add(
+                teacher_account
+            )
+
             self.base_repository.flush()
 
+            # Create Teacher
+
             teacher = Teacher(
-                school_id = school.id,
-                account_id=account.id,
+                school_id=school.id,
+                account_id=teacher_account.id,
                 employee_code=data["employee_code"],
                 first_name=data["first_name"],
                 middle_name=data.get("middle_name"),
@@ -60,27 +121,54 @@ class TeacherService:
                 remarks=data.get("remarks"),
             )
 
-            teacher = self.teacher_repository.add(teacher)
+            self.teacher_repository.add(
+                teacher
+            )
+
             self.teacher_repository.commit()
-            
+
             return teacher
-        except Exception as exc:
+
+        except Exception:
             self.teacher_repository.rollback()
-            raise Exception(str(exc))
-        
-    def get_teacher_by_uuid(self, public_uuid: str) -> Teacher:
-        
+            raise
+
+    # Get Teacher
+
+    def get_teacher_by_uuid(
+        self,
+        public_uuid: str,
+        account: Account,
+    ) -> Teacher:
+
+        school_id = self._get_school_scope(
+            account
+        )
+
         teacher = self.teacher_repository.get_by_public_uuid(
-                    public_uuid
-                )
+            public_uuid=public_uuid,
+            school_id=school_id,
+        )
+
         if teacher is None:
             raise TeacherNotFoundException()
-        
+
         return teacher
-    
-    def get_teachers(self, filters: dict):
+
+    # Get Teachers
+
+    def get_teachers(
+        self,
+        filters: dict,
+        account: Account,
+    ):
+
+        school_id = self._get_school_scope(
+            account
+        )
 
         return self.teacher_repository.get_teachers(
+            school_id=school_id,
             search=filters.get("search"),
             department=filters.get("department"),
             designation=filters.get("designation"),
@@ -91,26 +179,51 @@ class TeacherService:
             sort_by=filters.get("sort_by"),
             order=filters.get("order"),
         )
-    
-    def delete_teacher(self, public_uuid: str) -> None:
 
-        teacher = self.teacher_repository.get_by_public_uuid(public_uuid)
+    # Delete / Deactivate Teacher
+
+    def delete_teacher(
+        self,
+        public_uuid: str,
+        account: Account,
+    ) -> None:
+
+        teacher = self.get_teacher_by_uuid(
+            public_uuid,
+            account,
+        )
+
         teacher.is_active = False
+
         self.teacher_repository.commit()
 
-    def update_teacher(self, public_uuid: str, data: dict) -> Teacher:
+    # Update Teacher
 
-        teacher = self.teacher_repository.get_by_public_uuid(public_uuid)
+    def update_teacher(
+        self,
+        public_uuid: str,
+        data: dict,
+        account: Account,
+    ) -> Teacher:
+
+        teacher = self.get_teacher_by_uuid(
+            public_uuid,
+            account,
+        )
 
         if (
             teacher.employee_code != data["employee_code"]
-            and self.teacher_repository.exists(employee_code=data["employee_code"])
+            and self.teacher_repository.exists(
+                employee_code=data["employee_code"]
+            )
         ):
             raise EmployeeCodeAlreadyExistsException()
 
         if (
             teacher.official_email != data["official_email"]
-            and self.teacher_repository.exists(official_email=data["official_email"])
+            and self.teacher_repository.exists(
+                official_email=data["official_email"]
+            )
         ):
             raise OfficialEmailAlreadyExistsException()
 
@@ -130,21 +243,35 @@ class TeacherService:
         self.teacher_repository.commit()
 
         return teacher
-    
-    def get_stats(self):
 
-        return self.teacher_repository.get_statistics()
-    
+    # Statistics
+
+    def get_stats(
+        self,
+        account: Account,
+    ):
+
+        school_id = self._get_school_scope(
+            account
+        )
+
+        return self.teacher_repository.get_statistics(
+            school_id=school_id
+        )
+
+    # Activation
+
     def update_activation(
         self,
         public_uuid: str,
         is_active: bool,
+        account: Account,
     ):
 
-        teacher = self.teacher_repository.get_by_public_uuid(public_uuid)
-
-        if teacher is None:
-            raise TeacherNotFoundException()
+        teacher = self.get_teacher_by_uuid(
+            public_uuid,
+            account,
+        )
 
         teacher.is_active = is_active
 
@@ -152,4 +279,28 @@ class TeacherService:
 
         return teacher
 
-    
+    # School Scope
+
+    @staticmethod
+    def _get_school_scope(
+        account: Account,
+    ) -> int | None:
+
+        if account.role == UserRole.SUPER_ADMIN:
+            return None
+
+        if account.role == UserRole.SCHOOL_ADMIN:
+
+            if account.school_id is None:
+                raise SchoolNotFoundException()
+
+            return account.school_id
+
+        if account.role == UserRole.TEACHER:
+
+            if account.school_id is None:
+                raise SchoolNotFoundException()
+
+            return account.school_id
+
+        raise TeacherNotFoundException()
