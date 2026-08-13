@@ -24,6 +24,11 @@ school_bp.route(
 )(school_controller.get_all_schools)
 
 school_bp.route(
+    "/me",
+    methods=["GET"],
+)(school_controller.get_my_school)
+
+school_bp.route(
     "/statistics",
     methods=["GET"],
 )(school_controller.get_statistics)

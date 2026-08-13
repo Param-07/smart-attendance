@@ -21,6 +21,10 @@ class School(BaseModel):
             "code",
             name="uq_school_code",
         ),
+        UniqueConstraint(
+            "email",
+            name="uq_school_email",
+        )
     )
 
     # Basic Information

@@ -20,7 +20,7 @@ class TeacherController:
         self.teacher_statistics_response_schema = TeacherStatisticsResponseSchema()
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def add_teacher(self):
 
         payload = self.teacher_create_request_schema.load(
@@ -36,7 +36,7 @@ class TeacherController:
         )
     
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_all_teachers(self):
 
         filters = self.teacher_list_request_schema.load(
@@ -77,7 +77,7 @@ class TeacherController:
         )
     
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def update_teacher(self, public_uuid):
 
         data = self.teacher_update_request_schema.load(
@@ -97,7 +97,7 @@ class TeacherController:
         )
     
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def delete_teacher(self, public_uuid):
 
         self.service.delete_teacher(public_uuid)
@@ -107,7 +107,7 @@ class TeacherController:
         )
     
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_statsistics(self):
 
         result = self.service.get_stats()
@@ -119,7 +119,7 @@ class TeacherController:
         )
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def update_activation(self, public_uuid):
 
         payload = self.teacher_activation_request_schema.load(

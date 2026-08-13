@@ -15,7 +15,12 @@ class ConfigurationNotFoundException(ConflictException):
     def __init__(self):
         super().__init__("Configuration not found.")
 
-class InvalidEmailException(ConflictException):
+class SchoolEmailAlreadyExistsException(ConflictException):
+
+    error_code = "SCHOOL_EMAIL_ALREADY_EXISTS"
 
     def __init__(self):
-        super().__init__("Please check your email Id.")
+        super().__init__(
+            "School email is already assigned. "
+            "Please use a unique school email."
+        )

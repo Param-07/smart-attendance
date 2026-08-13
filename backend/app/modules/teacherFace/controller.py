@@ -16,7 +16,7 @@ class TeacherFaceController:
         self.response_schema = TeacherFaceResponseSchema()
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def register_face(self, teacher_public_uuid):
 
         uploaded_file = request.files.get("selfie")
@@ -34,7 +34,7 @@ class TeacherFaceController:
         )
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def update_face(self, teacher_public_uuid):
 
         uploaded_file = request.files.get("selfie")
@@ -52,7 +52,7 @@ class TeacherFaceController:
         )
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_face(self, teacher_public_uuid):
 
         teacher_face = self.service.get_registered_face(
@@ -67,7 +67,7 @@ class TeacherFaceController:
         )
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def delete_face(self, teacher_public_uuid):
 
         self.service.delete_face(

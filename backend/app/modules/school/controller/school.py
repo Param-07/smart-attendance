@@ -11,16 +11,18 @@ from ..schemas.request import (
     CreateSchoolRequestSchema,
     SchoolListRequestSchema,
     UpdateSchoolRequestSchema,
-    SchoolActivationRequestSchema
+    SchoolActivationRequestSchema,
 )
 
 from ..schemas.response import (
     SchoolResponseSchema,
     SchoolStatisticsResponseSchema,
-    SchoolListResponseSchema
+    SchoolListResponseSchema,
+    CreateSchoolResponseSchema,
 )
 
 from ..service.school import SchoolService
+from app.modules.authentication.service import AuthService
 
 
 class SchoolController:
@@ -29,17 +31,48 @@ class SchoolController:
 
         self.service = SchoolService()
 
-        self.school_list_request_schema = SchoolListRequestSchema()
-        self.school_create_request_schema = CreateSchoolRequestSchema()
-        self.school_update_request_schema = UpdateSchoolRequestSchema()
-        self.school_activation_request_schema = SchoolActivationRequestSchema()
+        self.auth_service = (
+            AuthService()
+        )
+        
+        # Request schemas
+        self.school_list_request_schema = (
+            SchoolListRequestSchema()
+        )
 
-        self.school_response_schema = SchoolResponseSchema()
-        self.school_statistics_response_schema = SchoolStatisticsResponseSchema()
-        self.school_list_response_schema = SchoolListResponseSchema()
+        self.school_create_request_schema = (
+            CreateSchoolRequestSchema()
+        )
+
+        self.school_update_request_schema = (
+            UpdateSchoolRequestSchema()
+        )
+
+        self.school_activation_request_schema = (
+            SchoolActivationRequestSchema()
+        )
+
+        # Response schemas
+        self.school_response_schema = (
+            SchoolResponseSchema()
+        )
+
+        self.create_school_response_schema = (
+            CreateSchoolResponseSchema()
+        )
+
+        self.school_statistics_response_schema = (
+            SchoolStatisticsResponseSchema()
+        )
+
+        self.school_list_response_schema = (
+            SchoolListResponseSchema()
+        )
+
+    # Create School
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def add_school(self):
 
         payload = self.school_create_request_schema.load(
@@ -50,25 +83,36 @@ class SchoolController:
             data=payload
         )
 
-        response = self.school_response_schema.dump(result)
+        response = (
+            self.create_school_response_schema.dump(
+                result
+            )
+        )
 
         return ApiResponse.success(
-            message="School created successfully.",
+            message=(
+                "School and school admin "
+                "created successfully."
+            ),
             data=response,
         )
 
+    # Get All Schools
+
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_all_schools(self):
 
         filters = self.school_list_request_schema.load(
             request.args
         )
 
-        result = self.service.get_schools(filters)
+        result = self.service.get_schools(
+            filters
+        )
 
         response = {
-            "items": self.school_list_request_schema.dump(
+            "items": self.school_list_response_schema.dump(
                 result.items,
                 many=True,
             ),
@@ -87,8 +131,31 @@ class SchoolController:
             data=response,
         )
 
+    # Get Own School
+    
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SCHOOL_ADMIN)
+    def get_my_school(self):
+
+        account = self.auth_service.get_current_user()
+
+        school = self.service.get_my_school(
+            account
+        )
+
+        response = self.school_response_schema.dump(
+            school
+        )
+
+        return ApiResponse.success(
+            message="School retrieved successfully.",
+            data=response,
+        )
+    
+    # Get School
+
+    @auth_required
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_school(
         self,
         public_uuid,
@@ -103,12 +170,14 @@ class SchoolController:
         )
 
         return ApiResponse.success(
-            message="Success",
+            message="School retrieved successfully.",
             data=response,
         )
 
+    # Update School
+
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def update_school(
         self,
         public_uuid,
@@ -132,14 +201,18 @@ class SchoolController:
             data=response,
         )
 
+    # School Statistics
+
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_statistics(self):
 
         result = self.service.get_statistics()
 
-        response = self.school_statistics_response_schema.dump(
-            result
+        response = (
+            self.school_statistics_response_schema.dump(
+                result
+            )
         )
 
         return ApiResponse.success(
@@ -147,15 +220,19 @@ class SchoolController:
             data=response,
         )
 
+    # School Activation
+
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def update_activation(
         self,
         public_uuid,
     ):
 
-        payload = self.school_activation_request_schema.load(
-            request.get_json() or {}
+        payload = (
+            self.school_activation_request_schema.load(
+                request.get_json() or {}
+            )
         )
 
         school = self.service.update_activation(

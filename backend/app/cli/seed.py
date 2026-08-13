@@ -9,27 +9,53 @@ from app.core.enums import (
 )
 from app.modules.authentication.utils import AuthUtils
 
-@click.command("create-admin")
+
+@click.command("create-super-admin")
 @with_appcontext
-def create_admin():
-    """Create the initial administrator account."""
+def create_super_admin():
+    """
+    Create the initial Super Admin account.
+    """
+
+    username = click.prompt(
+        "Super Admin username",
+        type=str,
+    ).strip()
 
     existing = Account.query.filter_by(
-    username="admin"
+        username=username
     ).first()
 
     if existing:
-        click.echo("Admin already exists.")
+        click.echo(
+            "An account with this username already exists."
+        )
         return
-    
-    admin = Account(
-    username="admin",
-    password_hash=AuthUtils.hash_password("Admin@123"),
-    role=UserRole.ADMIN,
-    account_status=AccountStatus.ACTIVE,
+
+    password = click.prompt(
+        "Super Admin password",
+        confirmation_prompt=True,
     )
 
-    db.session.add(admin)
-    db.session.commit()
+    account = Account(
+        username=username,
+        password_hash=AuthUtils.hash_password(
+            password
+        ),
+        role=UserRole.SUPER_ADMIN,
+        account_status=AccountStatus.ACTIVE,
+        password_reset_required=False,
+        school_id=None,
+    )
 
-    click.echo("Admin created successfully.")
+    try:
+        db.session.add(account)
+        db.session.commit()
+
+    except Exception:
+        db.session.rollback()
+        raise
+
+    click.echo(
+        f"Super Admin '{username}' created successfully."
+    )

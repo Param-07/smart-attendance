@@ -22,7 +22,7 @@ from app.modules.school.route.school import school_bp
 from app.modules.attendance.teacher.routes import teacher_attendance_bp
 from app.modules.teacherFace.routes import teacher_face_bp
 
-from app.cli.seed import create_admin
+from app.cli.seed import create_super_admin
 
 from app.core.logging import get_logger
 
@@ -38,7 +38,7 @@ def create_app() -> Flask:
 
     app = Flask(__name__)
 
-    app.cli.add_command(create_admin)
+    app.cli.add_command(create_super_admin)
 
     # -----------------------------------------------------
     # Load Configuration

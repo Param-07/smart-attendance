@@ -29,7 +29,7 @@ class SchoolConfigurationController:
         self.school_configuration_response_schema = SchoolConfigurationResponseSchema()
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_configuration(
         self,
         school_public_uuid,
@@ -51,7 +51,7 @@ class SchoolConfigurationController:
         )
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def update_configuration(
         self,
         school_public_uuid,

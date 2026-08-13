@@ -3,7 +3,15 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, text
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import AccountStatus, UserRole
@@ -20,9 +28,37 @@ class Account(BaseModel):
 
     Stores login credentials and account security
     information for all system users.
+
+    Roles:
+        SUPER_ADMIN
+            Platform-level administrator.
+            Not associated with a school.
+
+        SCHOOL_ADMIN
+            Administrator scoped to one school.
+
+        TEACHER
+            Teacher account scoped to one school.
     """
 
     __tablename__ = "accounts"
+
+    __table_args__ = (
+        CheckConstraint(
+            """
+            (
+                role = 'SUPER_ADMIN'
+                AND school_id IS NULL
+            )
+            OR
+            (
+                role IN ('SCHOOL_ADMIN', 'TEACHER')
+                AND school_id IS NOT NULL
+            )
+            """,
+            name="ck_account_role_school",
+        ),
+    )
 
     # Authentication
 
@@ -38,14 +74,21 @@ class Account(BaseModel):
     )
 
     role: Mapped[UserRole] = mapped_column(
-        Enum(UserRole, name="user_role"),
+        Enum(
+            UserRole,
+            name="user_role",
+        ),
         nullable=False,
     )
 
     account_status: Mapped[AccountStatus] = mapped_column(
-        Enum(AccountStatus, name="account_status"),
+        Enum(
+            AccountStatus,
+            name="account_status",
+        ),
         nullable=False,
         default=AccountStatus.ACTIVE,
+        server_default=text("'ACTIVE'"),
     )
 
     # Security
@@ -85,25 +128,25 @@ class Account(BaseModel):
 
     # School
 
-    school_id: Mapped[int] = mapped_column(
+    school_id: Mapped[int | None] = mapped_column(
         ForeignKey(
             "schools.id",
             ondelete="RESTRICT",
         ),
-        nullable=False,
+        nullable=True,
         index=True,
     )
 
-    school: Mapped["School"] = relationship(
+    school: Mapped["School | None"] = relationship(
         "School",
         back_populates="accounts",
         lazy="select",
     )
 
-    # Teacher profile
+    # Only TEACHER accounts have a Teacher record.
     #
-    # Only teacher accounts have an associated Teacher record.
-    # Admin accounts will have teacher=None.
+    # SUPER_ADMIN and SCHOOL_ADMIN accounts have teacher=None.
+    #
 
     teacher: Mapped["Teacher | None"] = relationship(
         "Teacher",
@@ -111,6 +154,8 @@ class Account(BaseModel):
         uselist=False,
         cascade="all, delete-orphan",
     )
+
+    # Serialization
 
     def to_dict(self) -> dict:
         data = super().to_dict()

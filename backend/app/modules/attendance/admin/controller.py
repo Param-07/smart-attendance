@@ -25,7 +25,7 @@ class AdminAttendanceController:
         self.pagination_schema = PaginationSchema()
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_attendance_list(self):
 
         payload = self.list_request_schema.load(
@@ -45,7 +45,7 @@ class AdminAttendanceController:
         )
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_attendance(self, public_uuid: str):
 
         attendance = self.service.get_attendance(
@@ -60,7 +60,7 @@ class AdminAttendanceController:
         )
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def correct_attendance(
         self,
         public_uuid: str,
@@ -84,7 +84,7 @@ class AdminAttendanceController:
         )
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_attendance_stats(self):
 
         stats = self.service.get_attendance_statistics()
@@ -96,7 +96,7 @@ class AdminAttendanceController:
         )
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_attendance_report(self):
 
         payload = self.report_request_schema.load(
@@ -121,7 +121,7 @@ class AdminAttendanceController:
         )
 
     @auth_required
-    @roles_required(UserRole.ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN)
     def get_attendance_report_export(self):
     
         payload = self.report_request_schema.load(

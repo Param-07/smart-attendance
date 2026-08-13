@@ -66,7 +66,6 @@ class SchoolListResponseSchema(Schema):
     email = fields.Email()
     is_active = fields.Boolean()
     
-
 class SchoolConfigurationResponseSchema(Schema):
 
     public_uuid = fields.UUID()
@@ -110,3 +109,34 @@ class SchoolConfigurationResponseSchema(Schema):
     created_at = fields.DateTime()
 
     updated_at = fields.DateTime()
+
+class SchoolAdminResponseSchema(Schema):
+
+    public_uuid = fields.UUID(
+        dump_only=True,
+    )
+
+    username = fields.String(
+        dump_only=True,
+    )
+
+    role = fields.String(
+        dump_only=True,
+    )
+
+
+class CreateSchoolResponseSchema(Schema):
+
+    school = fields.Nested(
+        SchoolResponseSchema,
+        dump_only=True,
+    )
+
+    admin = fields.Nested(
+        SchoolAdminResponseSchema,
+        dump_only=True,
+    )
+
+    temporary_password = fields.String(
+        dump_only=True,
+    )

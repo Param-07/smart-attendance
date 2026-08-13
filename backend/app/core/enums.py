@@ -1,7 +1,8 @@
 from enum import Enum
 
 class UserRole(str, Enum):
-    ADMIN = "ADMIN"
+    SUPER_ADMIN = "SUPER_ADMIN"
+    SCHOOL_ADMIN = "SCHOOL_ADMIN"
     TEACHER = "TEACHER"
 
 class AccountStatus(str, Enum):
