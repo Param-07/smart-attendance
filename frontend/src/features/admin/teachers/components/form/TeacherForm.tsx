@@ -75,7 +75,6 @@ export default function TeacherForm({
 
       username: "",
       password: "",
-      schoolPublicUuid: "",
     });
 
   const [errors, setErrors] =
@@ -164,10 +163,6 @@ export default function TeacherForm({
           "Password must be at least 8 characters.";
       }
 
-      if (!formData.schoolPublicUuid) {
-        nextErrors.schoolPublicUuid =
-          "School is required.";
-      }
     }
 
     setErrors(nextErrors);
@@ -178,7 +173,7 @@ export default function TeacherForm({
   };
 
   const handleSubmit = (
-    event: React.FormEvent<HTMLFormElement>,
+    event: React.SubmitEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
 
@@ -390,37 +385,6 @@ export default function TeacherForm({
                     {errors.password && (
                       <p className="mt-1 text-sm text-red-600">
                         {errors.password}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      School
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        formData.schoolPublicUuid
-                      }
-                      onChange={(e) =>
-                        updateField(
-                          "schoolPublicUuid",
-                          e.target.value,
-                        )
-                      }
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.schoolPublicUuid
-                          ? "border-red-300"
-                          : "border-slate-300"
-                      }`}
-                      placeholder="Enter school UUID"
-                    />
-                    {errors.schoolPublicUuid && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {
-                          errors.schoolPublicUuid
-                        }
                       </p>
                     )}
                   </div>

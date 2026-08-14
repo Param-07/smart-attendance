@@ -39,5 +39,4 @@ export interface TeacherFormData {
 
   username: string;
   password: string;
-  schoolPublicUuid: string;
 }

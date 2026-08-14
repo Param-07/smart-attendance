@@ -34,10 +34,9 @@ export async function createTeacher(
     designation: formData.designation,
     joining_date: formData.joiningDate,
     remarks: formData.remarks || null,
-    school_public_uuid:
-      formData.schoolPublicUuid,
   };
 
+  console.log(payload)
   const response =
     await apiClient.post<
       ApiResponse<TeacherResponseDto>
@@ -259,6 +258,7 @@ export async function updateTeacher(
     remarks: string | null;
   }>,
 ): Promise<Teacher> {
+  console.log(data)
   const response =
     await apiClient.put<
       ApiResponse<TeacherResponseDto>

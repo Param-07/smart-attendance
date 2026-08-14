@@ -15,11 +15,13 @@ import TeachersPage from "@/features/admin/teachers/TeachersPage";
 import TeacherDetailsPage from "@/features/admin/teachers/components/details/TeacherDetailsPage";
 import TeacherCreatePage from "@/features/admin/teachers/TeacherCreatePage";
 import TeacherEditPage from "@/features/admin/teachers/TeacherEditPage";
+import { AttendancePage, AttendanceDetailsPage } from "@/features/admin/attendance";
 
 import TeacherDashboardPage from "@/features/teacher/DashboardPage";
 
 import UnauthorizedPage from "@/features/common/UnauthorizedPage";
 import NotFoundPage from "@/features/common/NotFoundPage";
+import { AttendanceCorrectionDialog } from "@/features/admin/attendance/components";
 
 const router = createBrowserRouter([
   {
@@ -40,7 +42,7 @@ const router = createBrowserRouter([
 
   // Admin
   {
-    element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
+    element: <ProtectedRoute allowedRoles={["SUPER_ADMIN", "SCHOOL_ADMIN"]} />,
     children: [
       {
         path: "/admin",
@@ -59,6 +61,21 @@ const router = createBrowserRouter([
           {
             path: "dashboard",
             element: <AdminDashboardPage />,
+          },
+
+          {
+            path: "attendance",
+            element: <AttendancePage />,
+          },
+
+          {
+            path: "attendance/:publicUuid",
+            element: <AttendanceDetailsPage />,
+          },
+          
+          {
+            path: "attendance/:publicUuid/correct",
+            element: <AttendanceCorrectionDialog />,
           },
 
           {

@@ -53,7 +53,7 @@ export default function LoginForm() {
       establishSession(user);
 
       navigate(
-        user.role === "ADMIN"
+        user.role === "SUPER_ADMIN" || user.role === "SCHOOL_ADMIN"
           ? "/admin/dashboard"
           : "/teacher/dashboard",
         {

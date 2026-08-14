@@ -37,9 +37,7 @@ class AdminAttendanceController:
     )
     def get_attendance_list(self):
 
-        current_user = self.auth_service.get_current_user(
-            get_jwt_identity()
-        )
+        current_user = self.auth_service.get_current_user()
 
         payload = self.list_request_schema.load(
             request.args
@@ -73,9 +71,7 @@ class AdminAttendanceController:
         public_uuid: str,
     ):
 
-        current_user = self.auth_service.get_current_user(
-            get_jwt_identity()
-        )
+        current_user = self.auth_service.get_current_user()
 
         attendance = self.service.get_attendance(
             public_uuid=public_uuid,
@@ -101,9 +97,7 @@ class AdminAttendanceController:
         public_uuid: str,
     ):
 
-        current_user = self.auth_service.get_current_user(
-            get_jwt_identity()
-        )
+        current_user = self.auth_service.get_current_user()
 
         payload = self.correction_request_schema.load(
             request.get_json() or {}
@@ -132,9 +126,7 @@ class AdminAttendanceController:
     )
     def get_attendance_stats(self):
 
-        current_user = self.auth_service.get_current_user(
-            get_jwt_identity()
-        )
+        current_user = self.auth_service.get_current_user()
 
         stats = self.service.get_attendance_statistics(
             school_id=current_user.school_id,
@@ -156,9 +148,7 @@ class AdminAttendanceController:
     )
     def get_attendance_report(self):
 
-        current_user = self.auth_service.get_current_user(
-            get_jwt_identity()
-        )
+        current_user = self.auth_service.get_current_user()
 
         payload = self.report_request_schema.load(
             request.args
@@ -189,9 +179,7 @@ class AdminAttendanceController:
     )
     def get_attendance_report_export(self):
 
-        current_user = self.auth_service.get_current_user(
-            get_jwt_identity()
-        )
+        current_user = self.auth_service.get_current_user()
 
         payload = self.report_request_schema.load(
             request.args
