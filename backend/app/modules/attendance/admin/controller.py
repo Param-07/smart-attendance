@@ -4,15 +4,21 @@ from flask_jwt_extended import get_jwt_identity
 from .service import AdminAttendanceService
 from ..schemas import *
 from app.core.pagination_schema import PaginationSchema
-from app.modules.authentication.decorators import auth_required, roles_required
+from app.modules.authentication.decorators import (
+    auth_required,
+    roles_required,
+)
 from app.core.enums import UserRole
 from app.core.responses import ApiResponse
+from app.modules.authentication.service import AuthService
+
 
 class AdminAttendanceController:
 
     def __init__(self):
 
         self.service = AdminAttendanceService()
+        self.auth_service = AuthService()
 
         self.report_request_schema = AttendanceReportRequestSchema()
         self.correction_request_schema = AttendanceCorrectionRequestSchema()
@@ -25,86 +31,142 @@ class AdminAttendanceController:
         self.pagination_schema = PaginationSchema()
 
     @auth_required
-    @roles_required(UserRole.SUPER_ADMIN)
+    @roles_required(
+        UserRole.SUPER_ADMIN,
+        UserRole.SCHOOL_ADMIN,
+    )
     def get_attendance_list(self):
+
+        current_user = self.auth_service.get_current_user(
+            get_jwt_identity()
+        )
 
         payload = self.list_request_schema.load(
             request.args
         )
 
         pagination = self.service.get_attendance_list(
-            **payload
+            school_id=current_user.school_id,
+            **payload,
         )
 
-        response = self.pagination_schema.dump(pagination)
-        response["items"] = self.response_list_schema.dump(pagination.items)
+        response = self.pagination_schema.dump(
+            pagination
+        )
+
+        response["items"] = self.response_list_schema.dump(
+            pagination.items
+        )
 
         return ApiResponse.success(
-            message= "Attendance list fetched successfully.",
-            data= response
+            message="Attendance list fetched successfully.",
+            data=response,
         )
 
     @auth_required
-    @roles_required(UserRole.SUPER_ADMIN)
-    def get_attendance(self, public_uuid: str):
+    @roles_required(
+        UserRole.SUPER_ADMIN,
+        UserRole.SCHOOL_ADMIN,
+    )
+    def get_attendance(
+        self,
+        public_uuid: str,
+    ):
+
+        current_user = self.auth_service.get_current_user(
+            get_jwt_identity()
+        )
 
         attendance = self.service.get_attendance(
-            public_uuid
+            public_uuid=public_uuid,
+            school_id=current_user.school_id,
         )
 
-        response = self.response_schema.dump(attendance)
-        
+        response = self.response_schema.dump(
+            attendance
+        )
+
         return ApiResponse.success(
-            message= "Attendance fetched successfully.",
-            data= response
+            message="Attendance fetched successfully.",
+            data=response,
         )
 
     @auth_required
-    @roles_required(UserRole.SUPER_ADMIN)
+    @roles_required(
+        UserRole.SUPER_ADMIN,
+        UserRole.SCHOOL_ADMIN,
+    )
     def correct_attendance(
         self,
         public_uuid: str,
     ):
 
+        current_user = self.auth_service.get_current_user(
+            get_jwt_identity()
+        )
+
         payload = self.correction_request_schema.load(
-            request.get_json()
+            request.get_json() or {}
         )
 
         attendance = self.service.correct_attendance(
             attendance_public_uuid=public_uuid,
-            admin_account_public_uuid=get_jwt_identity(),
-            **payload
+            admin_account_public_uuid=current_user.public_uuid,
+            school_id=current_user.school_id,
+            **payload,
         )
 
-        response = self.response_schema.dump(attendance)
+        response = self.response_schema.dump(
+            attendance
+        )
 
         return ApiResponse.success(
             message="Attendance corrected successfully.",
-            data= response
+            data=response,
         )
 
     @auth_required
-    @roles_required(UserRole.SUPER_ADMIN)
+    @roles_required(
+        UserRole.SUPER_ADMIN,
+        UserRole.SCHOOL_ADMIN,
+    )
     def get_attendance_stats(self):
 
-        stats = self.service.get_attendance_statistics()
-        response = self.response_stats_schema.dump(stats)
+        current_user = self.auth_service.get_current_user(
+            get_jwt_identity()
+        )
+
+        stats = self.service.get_attendance_statistics(
+            school_id=current_user.school_id,
+        )
+
+        response = self.response_stats_schema.dump(
+            stats
+        )
 
         return ApiResponse.success(
-            message= "Status fetched successfully.",
-            data= response
+            message="Status fetched successfully.",
+            data=response,
         )
 
     @auth_required
-    @roles_required(UserRole.SUPER_ADMIN)
+    @roles_required(
+        UserRole.SUPER_ADMIN,
+        UserRole.SCHOOL_ADMIN,
+    )
     def get_attendance_report(self):
+
+        current_user = self.auth_service.get_current_user(
+            get_jwt_identity()
+        )
 
         payload = self.report_request_schema.load(
             request.args
         )
 
         pagination = self.service.get_attendance_report(
-            **payload
+            school_id=current_user.school_id,
+            **payload,
         )
 
         response = self.pagination_schema.dump(
@@ -121,17 +183,25 @@ class AdminAttendanceController:
         )
 
     @auth_required
-    @roles_required(UserRole.SUPER_ADMIN)
+    @roles_required(
+        UserRole.SUPER_ADMIN,
+        UserRole.SCHOOL_ADMIN,
+    )
     def get_attendance_report_export(self):
-    
+
+        current_user = self.auth_service.get_current_user(
+            get_jwt_identity()
+        )
+
         payload = self.report_request_schema.load(
             request.args
         )
-    
+
         attendance = self.service.get_attendance_report_export(
-            **payload
+            school_id=current_user.school_id,
+            **payload,
         )
-    
+
         excel_file = self.excel_export_service.generate(
             attendance
         )
@@ -139,6 +209,5 @@ class AdminAttendanceController:
         return send_file(
             excel_file,
             as_attachment=True,
-            download_name="attendance_report.xlsx"
+            download_name="attendance_report.xlsx",
         )
-

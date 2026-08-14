@@ -1,13 +1,15 @@
 from __future__ import annotations
+
 from datetime import date
 
-from sqlalchemy import or_, func
+from sqlalchemy import func, or_
 
 from app.extensions import db
 from app.modules.common.database.base_repository import BaseRepository
 from app.models import Attendance, Teacher
 from app.core.pagination import PaginationResult
 from ..enums import AttendanceStatus
+
 
 class AdminAttendanceRepository(BaseRepository[Attendance]):
 
@@ -22,17 +24,10 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
     def __init__(self):
         super().__init__(Attendance)
 
-    SORTABLE_COLUMNS = {
-        "attendance_date": Attendance.attendance_date,
-        "check_in_time": Attendance.check_in_time,
-        "check_out_time": Attendance.check_out_time,
-        "status": Attendance.status,
-        "created_at": Attendance.created_at,
-    }
-
     def get_attendance_list(
         self,
         *,
+        school_id: int | None = None,
         teacher_id: int | None = None,
         search: str | None = None,
         status: AttendanceStatus | None = None,
@@ -48,6 +43,11 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
             db.session.query(Attendance)
             .join(Teacher)
         )
+
+        if school_id is not None:
+            query = query.filter(
+                Teacher.school_id == school_id
+            )
 
         if teacher_id is not None:
             query = query.filter(
@@ -70,26 +70,23 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
             )
 
         if search:
-            pattern = f"%{search}%"
+            pattern = f"%{search.strip()}%"
 
             query = query.filter(
                 or_(
                     Teacher.first_name.ilike(pattern),
                     Teacher.middle_name.ilike(pattern),
                     Teacher.last_name.ilike(pattern),
+                    Teacher.display_name.ilike(pattern),
                     Teacher.employee_code.ilike(pattern),
                 )
             )
 
-        sort_column = self.SORTABLE_COLUMNS.get(
+        query = self._apply_sorting(
+            query,
             sort_by,
-            Attendance.attendance_date,
+            order,
         )
-
-        if order == "asc":
-            query = query.order_by(sort_column.asc())
-        else:
-            query = query.order_by(sort_column.desc())
 
         total_records = query.count()
 
@@ -107,15 +104,26 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
             total_records=total_records,
         )
 
-    def get_by_public_uuid(self, public_uuid: str)-> (Attendance | None):
+    def get_by_public_uuid(
+        self,
+        public_uuid: str,
+        school_id: int | None = None,
+    ) -> Attendance | None:
 
-        return (
+        query = (
             db.session.query(Attendance)
-                .filter(
-                    Attendance.public_uuid == public_uuid
-                )
-                .first()
+            .join(Teacher)
+            .filter(
+                Attendance.public_uuid == public_uuid
+            )
         )
+
+        if school_id is not None:
+            query = query.filter(
+                Teacher.school_id == school_id
+            )
+
+        return query.first()
 
     def update_attendance(
         self,
@@ -126,53 +134,74 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
 
         return attendance
 
-    def get_attendance_statistics(self) -> dict:
+    def get_attendance_statistics(
+        self,
+        *,
+        school_id: int | None = None,
+    ) -> dict:
 
         today = date.today()
 
-        total_teachers = (
-                            db.session.query(func.count(Teacher.id))
-                            .filter(
-                                Teacher.is_active.is_(True)
-                            )
-                            .scalar()
-                        )
+        teacher_query = db.session.query(Teacher.id).filter(
+            Teacher.is_active.is_(True)
+        )
 
-        base_query  = db.session.query(Attendance).filter(
-                            Attendance.attendance_date == today
-                        )
+        if school_id is not None:
+            teacher_query = teacher_query.filter(
+                Teacher.school_id == school_id
+            )
+
+        total_teachers = teacher_query.count()
+
+        base_query = (
+            db.session.query(Attendance)
+            .join(Teacher)
+            .filter(
+                Attendance.attendance_date == today
+            )
+        )
+
+        if school_id is not None:
+            base_query = base_query.filter(
+                Teacher.school_id == school_id
+            )
 
         present = (
-                    base_query 
-                    .with_entities(Attendance.teacher_id)
-                    .distinct()
-                    .count()
-                )
+            base_query
+            .with_entities(Attendance.teacher_id)
+            .distinct()
+            .count()
+        )
 
         completed = (
-                        base_query .filter(
-                            Attendance.status.in_(
-                                [
-                                    AttendanceStatus.COMPLETED,
-                                    AttendanceStatus.CORRECTED,
-                                ]
-                            )
-                        )
-                        .with_entities(Attendance.teacher_id)
-                        .distinct()
-                        .count()
-                    )
+            base_query
+            .filter(
+                Attendance.status.in_(
+                    [
+                        AttendanceStatus.COMPLETED,
+                        AttendanceStatus.CORRECTED,
+                    ]
+                )
+            )
+            .with_entities(Attendance.teacher_id)
+            .distinct()
+            .count()
+        )
 
         pending_checkout = (
-                                base_query .filter(
-                                    Attendance.status == AttendanceStatus.OPEN
-                                )
-                                .with_entities(Attendance.teacher_id)
-                                .distinct()
-                                .count()
-                            )
+            base_query
+            .filter(
+                Attendance.status == AttendanceStatus.OPEN
+            )
+            .with_entities(Attendance.teacher_id)
+            .distinct()
+            .count()
+        )
 
-        absent = max(total_teachers - present, 0)
+        absent = max(
+            total_teachers - present,
+            0,
+        )
 
         attendance_percentage = 0.0
 
@@ -192,41 +221,43 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
         }
 
     def get_attendance_report(
-            self,
-            *,
-            teacher_id: int | None = None,
-            search: str | None = None,
-            status: AttendanceStatus | None = None,
-            start_date: date,
-            end_date: date,
-            page: int = 1,
-            page_size: int = 20,
-            sort_by: str = "attendance_date",
-            order: str = "desc",
-        ) -> PaginationResult[Attendance]:
+        self,
+        *,
+        school_id: int | None = None,
+        teacher_id: int | None = None,
+        search: str | None = None,
+        status: AttendanceStatus | None = None,
+        start_date: date,
+        end_date: date,
+        page: int = 1,
+        page_size: int = 20,
+        sort_by: str = "attendance_date",
+        order: str = "desc",
+    ) -> PaginationResult[Attendance]:
 
         query = self._build_attendance_report_query(
-                teacher_id=teacher_id,
-                search=search,
-                status=status,
-                start_date=start_date,
-                end_date=end_date,
-            )
+            school_id=school_id,
+            teacher_id=teacher_id,
+            search=search,
+            status=status,
+            start_date=start_date,
+            end_date=end_date,
+        )
 
         total_records = query.count()
+
         query = self._apply_sorting(
-                    query= query,
-                    sort_by= sort_by,
-                    order= order
-                )
+            query,
+            sort_by,
+            order,
+        )
 
         items = (
-                query.offset(
-                    (page - 1) * page_size
-                )
-                .limit(page_size)
-                .all()
-            )
+            query
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+            .all()
+        )
 
         return PaginationResult(
             items=items,
@@ -238,6 +269,7 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
     def get_attendance_report_export(
         self,
         *,
+        school_id: int | None = None,
         teacher_id: int | None = None,
         search: str | None = None,
         status: AttendanceStatus | None = None,
@@ -248,26 +280,26 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
     ) -> list[Attendance]:
 
         query = self._build_attendance_report_query(
-                teacher_id=teacher_id,
-                search=search,
-                status=status,
-                start_date=start_date,
-                end_date=end_date,
-            )
+            school_id=school_id,
+            teacher_id=teacher_id,
+            search=search,
+            status=status,
+            start_date=start_date,
+            end_date=end_date,
+        )
 
         query = self._apply_sorting(
-            query= query,
-            sort_by= sort_by,
-            order= order
+            query,
+            sort_by,
+            order,
         )
 
         return query.all()
 
-    #Helper methods
-
     def _build_attendance_report_query(
         self,
         *,
+        school_id: int | None = None,
         teacher_id: int | None = None,
         search: str | None = None,
         status: AttendanceStatus | None = None,
@@ -277,13 +309,18 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
 
         query = (
             db.session.query(Attendance)
-                .join(Teacher)
+            .join(Teacher)
         )
 
         query = query.filter(
             Attendance.attendance_date >= start_date,
-            Attendance.attendance_date <= end_date
+            Attendance.attendance_date <= end_date,
         )
+
+        if school_id is not None:
+            query = query.filter(
+                Teacher.school_id == school_id
+            )
 
         if teacher_id is not None:
             query = query.filter(
@@ -302,8 +339,9 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
                 or_(
                     Teacher.employee_code.ilike(pattern),
                     Teacher.first_name.ilike(pattern),
+                    Teacher.middle_name.ilike(pattern),
                     Teacher.last_name.ilike(pattern),
-                    Teacher.display_name.ilike(pattern)
+                    Teacher.display_name.ilike(pattern),
                 )
             )
 
@@ -315,16 +353,17 @@ class AdminAttendanceRepository(BaseRepository[Attendance]):
         sort_by: str,
         order: str,
     ):
+
         sort_column = self.SORTABLE_COLUMNS.get(
-                    sort_by,
-                    Attendance.attendance_date,
-                )
-        
+            sort_by,
+            Attendance.attendance_date,
+        )
+
         if order.lower() == "asc":
-            query = query.order_by(sort_column.asc())
-        else:
-            query = query.order_by(sort_column.desc())
+            return query.order_by(
+                sort_column.asc()
+            )
 
-        return query
-
-    
+        return query.order_by(
+            sort_column.desc()
+        )
