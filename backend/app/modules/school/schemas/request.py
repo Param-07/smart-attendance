@@ -164,6 +164,14 @@ class SchoolConfigurationUpdateRequestSchema(Schema):
 
     require_liveness = fields.Boolean()
 
+    liveness_threshold = fields.Decimal(
+        as_string=True,
+        validate=validate.Range(
+            min=0,
+            max=1,
+        ),
+    )
+
     allow_face_reregistration = fields.Boolean()
 
     face_match_threshold = fields.Decimal(
@@ -198,6 +206,29 @@ class SchoolConfigurationUpdateRequestSchema(Schema):
 
     gps_accuracy_threshold = fields.Integer(
         validate=validate.Range(min=1),
+    )
+
+    school_latitude = fields.Decimal(
+        as_string=True,
+        allow_none=True,
+        validate=validate.Range(
+            min=-90,
+            max=90,
+        ),
+    )
+
+    school_longitude = fields.Decimal(
+        as_string=True,
+        allow_none=True,
+        validate=validate.Range(
+            min=-180,
+            max=180,
+        ),
+    )
+
+    location_name = fields.String(
+        allow_none=True,
+        validate=validate.Length(max=100),
     )
 
     # Security

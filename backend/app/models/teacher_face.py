@@ -9,6 +9,7 @@ from sqlalchemy import (
     Boolean,
     Float,
     ForeignKey,
+    Index,
     String,
     text,
 )
@@ -21,6 +22,15 @@ from app.models import BaseModel
 class TeacherFace(BaseModel):
 
     __tablename__ = "teacher_faces"
+
+    __table_args__ = (
+        Index(
+            "uq_teacher_faces_active",
+            "teacher_id",
+            unique=True,
+            postgresql_where=text("is_active = true"),
+        ),
+    )
 
     teacher_id: Mapped[int] = mapped_column(
         ForeignKey(
@@ -65,6 +75,7 @@ class TeacherFace(BaseModel):
 
     def to_dict(self) -> dict:
         data = super().to_dict()
+
         data.update({
             "teacher_id": self.teacher_id,
             "image_path": self.image_path,
@@ -73,4 +84,5 @@ class TeacherFace(BaseModel):
             "face_quality_score": self.face_quality_score,
             "is_active": self.is_active,
         })
+
         return data

@@ -1,24 +1,35 @@
+from __future__ import annotations
+
 import os
 from datetime import UTC, datetime
 
-import cv2
 from werkzeug.datastructures import FileStorage
 
 from app.extensions import db
-from app.models import Teacher, TeacherFace
+from app.models import (
+    Account,
+    Teacher,
+    TeacherFace,
+)
 
+from app.core.enums import UserRole
 from app.core.exceptions import (
     ConflictException,
+    ForbiddenException,
     NotFoundException,
 )
 
 from app.ai.preprocessing.image_utils import ImageUtils
-from app.ai.preprocessing.face_cropper import FaceCropper
+
 from app.modules.teacher.repository import TeacherRepository
 from app.modules.teacherFace.repository import TeacherFaceRepository
-from app.modules.school.repository.configuration import SchoolConfigurationRepository
+from app.modules.school.repository.configuration import (
+    SchoolConfigurationRepository,
+)
 
-from app.services.face.face_verification_service import FaceVerificationService
+from app.services.face.face_verification_service import (
+    FaceVerificationService,
+)
 from app.services.storage.selfie_storage_service import StorageService
 from app.services.face.liveness_service import LivenessService
 from app.services.face.face_detection_service import FaceDetectionService
@@ -32,47 +43,63 @@ class TeacherFaceService:
 
         self.teacher_repository = TeacherRepository()
 
-        self.teacher_face_repository = TeacherFaceRepository()
+        self.teacher_face_repository = (
+            TeacherFaceRepository()
+        )
 
         self.face_verification = FaceVerificationService()
 
         self.storage = StorageService()
-    
+
         self.liveness_service = LivenessService()
 
-        self.configuration_repository = SchoolConfigurationRepository()
+        self.configuration_repository = (
+            SchoolConfigurationRepository()
+        )
 
         self.face_detector = FaceDetectionService()
-
-        self.face_cropper = FaceCropper()
-
-    # ============================================================
-    # Public Methods
-    # ============================================================
 
     def register_face(
         self,
         teacher_public_uuid: str,
         uploaded_file: FileStorage,
+        current_user: Account,
     ) -> TeacherFace:
+
+        if uploaded_file is None:
+            raise ValueError(
+                "Selfie image is required."
+            )
 
         teacher = self._get_teacher(
             teacher_public_uuid
+        )
+
+        self._authorize_teacher_access(
+            teacher,
+            current_user,
         )
 
         self._validate_registration(
             teacher
         )
 
-        configuration = self._get_configuration(teacher)
+        configuration = self._get_configuration(
+            teacher
+        )
 
-        image = self._read_image(uploaded_file)
-        face = self.face_detector.detect_single_face(image)
+        image = self._read_image(
+            uploaded_file
+        )
+
+        face = self.face_detector.detect_single_face(
+            image
+        )
 
         self._validate_liveness(
             image=image,
-            face = face,
-            configuration=configuration
+            face=face,
+            configuration=configuration,
         )
 
         embedding = (
@@ -81,8 +108,9 @@ class TeacherFaceService:
             )
         )
 
-        image_path = None
         uploaded_file.stream.seek(0)
+
+        image_path = None
 
         try:
 
@@ -98,10 +126,11 @@ class TeacherFaceService:
                 face=face,
             )
 
-            self._save_teacher_face(
+            self.teacher_face_repository.add(
                 teacher_face
             )
 
+            db.session.flush()
             db.session.commit()
 
             return teacher_face
@@ -111,6 +140,7 @@ class TeacherFaceService:
             db.session.rollback()
 
             if image_path:
+
                 try:
                     self.storage.delete_file(
                         self.BUCKET_NAME,
@@ -121,7 +151,207 @@ class TeacherFaceService:
 
             raise
 
-    # Private Helpers
+    def replace_face(
+        self,
+        teacher_public_uuid: str,
+        uploaded_file: FileStorage,
+        current_user: Account,
+    ) -> TeacherFace:
+
+        if uploaded_file is None:
+            raise ValueError(
+                "Selfie image is required."
+            )
+
+        teacher = self._get_teacher(
+            teacher_public_uuid
+        )
+
+        self._authorize_teacher_access(
+            teacher,
+            current_user,
+        )
+
+        old_face = self._get_active_face(
+            teacher.id
+        )
+
+        configuration = self._get_configuration(
+            teacher
+        )
+
+        image = self._read_image(
+            uploaded_file
+        )
+
+        face = self.face_detector.detect_single_face(
+            image
+        )
+
+        self._validate_liveness(
+            image=image,
+            face=face,
+            configuration=configuration,
+        )
+
+        embedding = (
+            self.face_verification.extract_embedding(
+                face
+            )
+        )
+
+        uploaded_file.stream.seek(0)
+
+        image_path = None
+
+        try:
+
+            image_path = self._upload_face(
+                teacher,
+                uploaded_file,
+            )
+
+            self.teacher_face_repository.deactivate_active_face(
+                teacher.id
+            )
+
+            teacher_face = self._create_teacher_face(
+                teacher=teacher,
+                embedding=embedding,
+                image_path=image_path,
+                face=face,
+            )
+
+            self.teacher_face_repository.add(
+                teacher_face
+            )
+
+            db.session.flush()
+            db.session.commit()
+
+        except Exception:
+
+            db.session.rollback()
+
+            if image_path:
+
+                try:
+                    self.storage.delete_file(
+                        self.BUCKET_NAME,
+                        image_path,
+                    )
+                except Exception:
+                    pass
+
+            raise
+
+        try:
+
+            self.storage.delete_file(
+                self.BUCKET_NAME,
+                old_face.image_path,
+            )
+
+        except Exception:
+            pass
+
+        return teacher_face
+
+    def get_registered_face(
+        self,
+        teacher_public_uuid: str,
+        current_user: Account,
+    ) -> dict:
+
+        teacher = self._get_teacher(
+            teacher_public_uuid
+        )
+
+        self._authorize_teacher_access(
+            teacher,
+            current_user,
+        )
+
+        teacher_face = self._get_active_face(
+            teacher.id
+        )
+
+        image_url = self.storage.get_public_url(
+            bucket_name=self.BUCKET_NAME,
+            file_path=teacher_face.image_path,
+        )
+
+        return {
+            "teacher_uuid": str(
+                teacher.public_uuid
+            ),
+            "image_url": image_url,
+            "model_name": teacher_face.model_name,
+            "model_version": teacher_face.model_version,
+            "face_quality_score": (
+                teacher_face.face_quality_score
+            ),
+            "registered_at": teacher_face.created_at,
+        }
+
+    def delete_face(
+        self,
+        teacher_public_uuid: str,
+        current_user: Account,
+    ) -> None:
+
+        teacher = self._get_teacher(
+            teacher_public_uuid
+        )
+
+        self._authorize_teacher_access(
+            teacher,
+            current_user,
+        )
+
+        teacher_face = self._get_active_face(
+            teacher.id
+        )
+
+        try:
+
+            self.storage.delete_file(
+                bucket_name=self.BUCKET_NAME,
+                file_path=teacher_face.image_path,
+            )
+
+            self.teacher_face_repository.deactivate_active_face(
+                teacher.id
+            )
+
+            db.session.commit()
+
+        except Exception:
+
+            db.session.rollback()
+            raise
+
+    def _authorize_teacher_access(
+        self,
+        teacher: Teacher,
+        current_user: Account,
+    ) -> None:
+
+        if current_user.role == UserRole.SUPER_ADMIN:
+            return
+
+        if current_user.role == UserRole.SCHOOL_ADMIN:
+
+            if current_user.school_id != teacher.school_id:
+                raise ForbiddenException(
+                    "You do not have access to this teacher."
+                )
+
+            return
+
+        raise ForbiddenException(
+            "You do not have permission to access this teacher."
+        )
 
     def _get_teacher(
         self,
@@ -149,9 +379,28 @@ class TeacherFaceService:
         if self.teacher_face_repository.has_active_face(
             teacher.id
         ):
+
             raise ConflictException(
                 "Teacher already has an active face registration."
             )
+
+    def _get_active_face(
+        self,
+        teacher_id: int,
+    ) -> TeacherFace:
+
+        teacher_face = (
+            self.teacher_face_repository.get_active_face(
+                teacher_id
+            )
+        )
+
+        if teacher_face is None:
+            raise NotFoundException(
+                "Teacher does not have an active face registration."
+            )
+
+        return teacher_face
 
     def _upload_face(
         self,
@@ -160,12 +409,21 @@ class TeacherFaceService:
     ) -> str:
 
         extension = os.path.splitext(
-            uploaded_file.filename
-        )[1]
+            uploaded_file.filename or ""
+        )[1].lower()
+
+        if extension not in {
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp",
+        }:
+            extension = ".jpg"
 
         filename = (
-            datetime.now(UTC)
-            .strftime("%Y%m%d_%H%M%S_%f")
+            datetime.now(UTC).strftime(
+                "%Y%m%d_%H%M%S_%f"
+            )
             + extension
         )
 
@@ -188,225 +446,57 @@ class TeacherFaceService:
     ) -> TeacherFace:
 
         return TeacherFace(
-
             teacher_id=teacher.id,
-
             image_path=image_path,
-
             embedding=embedding.tolist(),
-
             model_name="InsightFace",
-
             model_version="buffalo_l",
-
             face_quality_score=float(
                 face.det_score
             ),
         )
-
-    def _save_teacher_face(
-        self,
-        teacher_face: TeacherFace,
-    ) -> None:
-
-        self.teacher_face_repository.add(
-            teacher_face
-        )
-
-        db.session.flush()
-
-    def get_registered_face(
-        self,
-        teacher_public_uuid: str,
-    ) -> dict:
-
-        teacher = self._get_teacher(
-            teacher_public_uuid
-        )
-
-        teacher_face = self._get_active_face(
-            teacher.id
-        )
-
-        image_url = self.storage.get_public_url(
-            bucket_name=self.BUCKET_NAME,
-            file_path=teacher_face.image_path,
-        )
-
-        return {
-            "teacher_uuid": str(teacher.public_uuid),
-            "image_url": image_url,
-            "model_name": teacher_face.model_name,
-            "model_version": teacher_face.model_version,
-            "face_quality_score": teacher_face.face_quality_score,
-            "registered_at": teacher_face.created_at,
-        }
-
-    def delete_face(
-        self,
-        teacher_public_uuid: str,
-    ) -> None:
-
-        teacher = self._get_teacher(
-            teacher_public_uuid
-        )
-
-        teacher_face = self._get_active_face(
-            teacher.id
-        )
-
-        try:
-
-            self.storage.delete_file(
-                bucket_name=self.BUCKET_NAME,
-                file_path=teacher_face.image_path,
-            )
-
-            self.teacher_face_repository.deactivate_active_face(
-                teacher.id
-            )
-
-            db.session.commit()
-
-        except Exception:
-
-            db.session.rollback()
-            raise
-
-    def replace_face(
-        self,
-        teacher_public_uuid: str,
-        uploaded_file: FileStorage,
-    ) -> TeacherFace:
-
-        teacher = self._get_teacher(
-            teacher_public_uuid
-        )
-
-        old_face = self._get_active_face(
-            teacher.id
-        )
-
-        image = self._read_image(uploaded_file)
-        configuration = self._get_configuration(teacher)
-
-        face = self.face_detector.detect_single_face(image)
-        self._validate_liveness(image, face, configuration)
-
-        embedding = (
-            self.face_verification.extract_embedding(
-                face
-            )
-        )
-
-        image_path = None
-        uploaded_file.stream.seek(0)  
-
-        try:
-
-            image_path = self._upload_face(
-                teacher,
-                uploaded_file,
-            )
-
-            self.teacher_face_repository.deactivate_active_face(
-                teacher.id
-            )
-
-            teacher_face = self._create_teacher_face(
-                teacher=teacher,
-                embedding=embedding,
-                image_path=image_path,
-                face=face,
-            )
-
-            self._save_teacher_face(
-                teacher_face
-            )
-
-            db.session.commit()
-
-        except Exception:
-
-            db.session.rollback()
-
-            if image_path:
-                try:
-                    self.storage.delete_file(
-                        self.BUCKET_NAME,
-                        image_path,
-                    )
-                except Exception:
-                    pass
-
-            raise
-
-        try:
-            self.storage.delete_file(
-                self.BUCKET_NAME,
-                old_face.image_path,
-            )
-        except Exception:
-            pass
-
-        return teacher_face
-
-    # ============================================================
-    # Private Helpers
-    # ============================================================
-
-    def _get_active_face(
-        self,
-        teacher_id: int,
-    ) -> TeacherFace:
-
-        teacher_face = (
-            self.teacher_face_repository.get_active_face(
-                teacher_id
-            )
-        )
-
-        if teacher_face is None:
-            raise NotFoundException(
-                "Teacher does not have an active face registration."
-            )
-
-        return teacher_face
 
     def _read_image(
         self,
         uploaded_file: FileStorage,
     ):
 
-        return ImageUtils.read_uploaded_image(uploaded_file)
+        return ImageUtils.read_uploaded_image(
+            uploaded_file
+        )
 
     def _validate_liveness(
         self,
         image,
         face,
-        configuration
+        configuration,
     ) -> None:
 
-        face = self.face_detector.detect_single_face(image)
-        
-        face_crop = self.face_cropper.crop(image, face)
-
         self.liveness_service.validate(
-            image=face_crop,
+            image=image,
             face=face,
-            configuration=configuration
+            configuration=configuration,
         )
 
     def _get_configuration(
         self,
         teacher: Teacher,
     ):
-        school_public_uuid = teacher.school.public_uuid
+
+        school_public_uuid = (
+            teacher.school.public_uuid
+        )
 
         configuration = (
-            self.configuration_repository.get_by_school_public_uuid(
+            self.configuration_repository
+            .get_by_school_public_uuid(
                 school_public_uuid
             )
         )
+
+        if configuration is None:
+            raise NotFoundException(
+                "School configuration not found."
+            )
 
         return configuration
