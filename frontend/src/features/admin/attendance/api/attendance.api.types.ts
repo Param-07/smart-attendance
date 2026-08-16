@@ -60,7 +60,11 @@ export interface AttendanceResponseDto {
 
   check_in_selfie_path: string | null;
 
+  check_in_selfie_url: string | null;
+
   check_out_selfie_path: string | null;
+
+  check_out_selfie_url: string | null;
 
   status: string;
 

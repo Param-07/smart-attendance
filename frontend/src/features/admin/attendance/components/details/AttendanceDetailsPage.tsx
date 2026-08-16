@@ -12,38 +12,25 @@ import type { Attendance } from "../../Attendance.types";
 import AttendanceDetails from "../../components/details/AttendanceDetails";
 
 export default function AttendanceDetailsPage() {
-  const {
-    publicUuid,
-  } = useParams<{
+  const { publicUuid } = useParams<{
     publicUuid: string;
   }>();
 
   const navigate = useNavigate();
 
-  const [
-    attendance,
-    setAttendance,
-  ] = useState<Attendance | null>(null);
+  const [attendance, setAttendance] =
+    useState<Attendance | null>(null);
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [
-    error,
-    setError,
-  ] = useState<string | null>(null);
-
+  const [error, setError] =
+    useState<string | null>(null);
 
   useEffect(() => {
     if (!publicUuid) {
       setLoading(false);
-
-      setError(
-        "Attendance ID is missing.",
-      );
-
+      setError("Attendance ID is missing.");
       return;
     }
 
@@ -67,40 +54,26 @@ export default function AttendanceDetailsPage() {
       .finally(() => {
         setLoading(false);
       });
-
   }, [publicUuid]);
-
 
   if (loading) {
     return (
       <AttendanceDetails
-        attendance={
-          {} as Attendance
-        }
+        attendance={{} as Attendance}
         isLoading
       />
     );
   }
 
-
   if (!attendance || error) {
     return (
       <div className="space-y-5">
-
         <div>
-          <h1 className="
-            text-2xl
-            font-semibold
-            text-slate-900
-          ">
+          <h1 className="text-2xl font-semibold text-slate-900">
             Attendance Not Found
           </h1>
 
-          <p className="
-            mt-1
-            text-sm
-            text-slate-500
-          ">
+          <p className="mt-1 text-sm text-slate-500">
             {error ||
               "The attendance record could not be found."}
           </p>
@@ -119,24 +92,16 @@ export default function AttendanceDetailsPage() {
         >
           ← Back to Attendance
         </Link>
-
       </div>
     );
   }
-
 
   return (
     <div className="space-y-6">
 
       {/* Breadcrumb */}
 
-      <nav className="
-        flex
-        items-center
-        gap-2
-        text-sm
-      ">
-
+      <nav className="flex items-center gap-2 text-sm">
         <Link
           to="/admin/attendance"
           className="
@@ -152,23 +117,13 @@ export default function AttendanceDetailsPage() {
           /
         </span>
 
-        <span className="
-          font-medium
-          text-slate-800
-        ">
+        <span className="font-medium text-slate-800">
           {attendance.teacher.displayName}
         </span>
-
       </nav>
-
 
       <AttendanceDetails
         attendance={attendance}
-        onClose={() =>
-          navigate(
-            "/admin/attendance",
-          )
-        }
         onEdit={() =>
           navigate(
             `/admin/attendance/${publicUuid}/correct`,

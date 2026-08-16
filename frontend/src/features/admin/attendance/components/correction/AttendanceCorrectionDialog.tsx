@@ -1,9 +1,13 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 
 import Button from "@/shared/components/Button";
 import Card from "@/shared/components/Card";
-import PageHeader from "@/shared/components/PageHeader";
 
 import {
   correctAttendance,
@@ -11,7 +15,6 @@ import {
 } from "../../api/attendance.api";
 
 import type { Attendance } from "../../Attendance.types";
-
 
 function toDateTimeLocal(
   value: string | null | undefined,
@@ -43,7 +46,6 @@ function toDateTimeLocal(
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
-
 export default function AttendanceCorrectionPage() {
   const navigate = useNavigate();
 
@@ -72,24 +74,17 @@ export default function AttendanceCorrectionPage() {
   const [error, setError] =
     useState<string | null>(null);
 
-  const [fieldErrors, setFieldErrors] =
-    useState<{
-      checkInTime?: string;
-      checkOutTime?: string;
-      remarks?: string;
-    }>({});
-
-
   useEffect(() => {
     if (!publicUuid) {
-      setError(
-        "Attendance record was not found.",
-      );
-
       setLoading(false);
-
+      setError(
+        "Attendance ID is missing.",
+      );
       return;
     }
+
+    setLoading(true);
+    setError(null);
 
     getAttendanceById(publicUuid)
       .then((data) => {
@@ -111,23 +106,40 @@ export default function AttendanceCorrectionPage() {
           data.remarks ?? "",
         );
       })
-      .catch(() => {
-        setError(
-          "Unable to load attendance record.",
-        );
+      .catch((err) => {
+        if (axios.isAxiosError(err)) {
+          setError(
+            err.response?.data?.message ||
+              "Unable to load attendance record.",
+          );
+        } else {
+          setError(
+            "Unable to load attendance record.",
+          );
+        }
       })
       .finally(() => {
         setLoading(false);
       });
   }, [publicUuid]);
 
+  const handleSubmit = async (
+    event: React.FormEvent,
+  ) => {
+    event.preventDefault();
 
-  const validateForm = () => {
-    const errors: {
-      checkInTime?: string;
-      checkOutTime?: string;
-      remarks?: string;
-    } = {};
+    if (!publicUuid) {
+      return;
+    }
+
+    setError(null);
+
+    if (!remarks.trim()) {
+      setError(
+        "Please provide a correction reason.",
+      );
+      return;
+    }
 
     if (
       checkInTime &&
@@ -135,37 +147,9 @@ export default function AttendanceCorrectionPage() {
       new Date(checkInTime) >
         new Date(checkOutTime)
     ) {
-      errors.checkOutTime =
-        "Check-out time cannot be before check-in time.";
-    }
-
-    if (!remarks.trim()) {
-      errors.remarks =
-        "Please provide a correction reason.";
-    }
-
-    setFieldErrors(errors);
-
-    return Object.keys(errors).length === 0;
-  };
-
-
-  const handleSubmit = async (
-    event: React.FormEvent,
-  ) => {
-    event.preventDefault();
-
-    setError(null);
-
-    if (!validateForm()) {
-      return;
-    }
-
-    if (!publicUuid) {
       setError(
-        "Attendance record was not found.",
+        "Check-in time cannot be after check-out time.",
       );
-
       return;
     }
 
@@ -175,121 +159,174 @@ export default function AttendanceCorrectionPage() {
       await correctAttendance(
         publicUuid,
         {
-          check_in_time:
-            checkInTime
-              ? new Date(
-                  checkInTime,
-                ).toISOString()
-              : undefined,
+          check_in_time: checkInTime
+            ? new Date(
+                checkInTime,
+              ).toISOString()
+            : undefined,
 
-          check_out_time:
-            checkOutTime
-              ? new Date(
-                  checkOutTime,
-                ).toISOString()
-              : undefined,
+          check_out_time: checkOutTime
+            ? new Date(
+                checkOutTime,
+              ).toISOString()
+            : undefined,
 
           remarks: remarks.trim(),
         },
       );
 
       navigate(
-        "/admin/attendance",
+        `/admin/attendance/${publicUuid}`,
         {
-          replace: true,
           state: {
             successMessage:
               "Attendance corrected successfully.",
           },
         },
       );
-    } catch {
-      setError(
-        "Unable to correct attendance. Please try again.",
-      );
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ||
+            "Unable to correct attendance. Please try again.",
+        );
+      } else {
+        setError(
+          "Unable to correct attendance. Please try again.",
+        );
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
-
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader
-          title="Correct Attendance"
-          description="Update attendance information."
-        />
-
-        <Card className="rounded-2xl border border-border bg-surface p-6">
-          <p className="text-sm text-slate-500">
-            Loading attendance record...
-          </p>
-        </Card>
-      </div>
-    );
-  }
-
-
-  if (!attendance) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Correct Attendance"
-          description="Update attendance information."
-        />
-
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
-          {error ??
-            "Attendance record was not found."}
+        <div className="text-sm text-slate-500">
+          Loading attendance record...
         </div>
       </div>
     );
   }
 
+  if (!attendance) {
+    return (
+      <div className="space-y-5">
+        <h1 className="text-2xl font-semibold text-slate-900">
+          Attendance Not Found
+        </h1>
+
+        <p className="text-sm text-red-600">
+          {error ||
+            "The attendance record could not be found."}
+        </p>
+
+        <Link
+          to="/admin/attendance"
+          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+        >
+          ← Back to Attendance
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
 
-      <PageHeader
-        title="Correct Attendance"
-        description="Update the attendance times and provide a reason for the correction."
-      />
+      {/* Breadcrumb */}
 
+      <nav className="flex items-center gap-2 text-sm">
+
+        <Link
+          to="/admin/attendance"
+          className="
+            text-slate-500
+            transition-colors
+            hover:text-blue-600
+          "
+        >
+          Attendance
+        </Link>
+
+        <span className="text-slate-300">
+          /
+        </span>
+
+        <Link
+          to={`/admin/attendance/${publicUuid}`}
+          className="
+            text-slate-500
+            transition-colors
+            hover:text-blue-600
+          "
+        >
+          {attendance.teacher.displayName}
+        </Link>
+
+        <span className="text-slate-300">
+          /
+        </span>
+
+        <span className="font-medium text-slate-800">
+          Correction
+        </span>
+
+      </nav>
+
+      {/* Header */}
+
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+          Correct Attendance
+        </h1>
+
+        <p className="mt-2 text-sm text-slate-500">
+          Update attendance times and provide a reason
+          for the correction.
+        </p>
+      </div>
 
       {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="
+          rounded-xl
+          border
+          border-red-200
+          bg-red-50
+          px-4
+          py-3
+          text-sm
+          text-red-700
+        ">
           {error}
         </div>
       )}
 
-
-      {/* Teacher information */}
+      {/* Teacher */}
 
       <Card className="rounded-2xl border border-border bg-surface p-6">
 
         <div className="flex items-center gap-4">
 
-          <div
-            className="
-              flex
-              h-12
-              w-12
-              items-center
-              justify-center
-              rounded-full
-              bg-blue-50
-              text-sm
-              font-semibold
-              text-blue-600
-            "
-          >
+          <div className="
+            flex
+            h-12
+            w-12
+            shrink-0
+            items-center
+            justify-center
+            rounded-full
+            bg-blue-50
+            text-sm
+            font-semibold
+            text-blue-600
+          ">
             {attendance.teacher.firstName.charAt(0)}
             {attendance.teacher.lastName.charAt(0)}
           </div>
 
           <div>
-
             <p className="font-semibold text-slate-900">
               {attendance.teacher.displayName}
             </p>
@@ -299,15 +336,13 @@ export default function AttendanceCorrectionPage() {
               {" • "}
               {attendance.teacher.department}
             </p>
-
           </div>
 
         </div>
 
       </Card>
 
-
-      {/* Correction form */}
+      {/* Form */}
 
       <Card className="rounded-2xl border border-border bg-surface p-6">
 
@@ -318,10 +353,7 @@ export default function AttendanceCorrectionPage() {
 
           <div className="grid gap-6 md:grid-cols-2">
 
-            {/* Check in */}
-
             <div>
-
               <label
                 htmlFor="check-in-time"
                 className="mb-2 block text-sm font-medium text-slate-700"
@@ -333,51 +365,30 @@ export default function AttendanceCorrectionPage() {
                 id="check-in-time"
                 type="datetime-local"
                 value={checkInTime}
-                onChange={(event) => {
+                onChange={(event) =>
                   setCheckInTime(
                     event.target.value,
-                  );
-
-                  setFieldErrors(
-                    (current) => ({
-                      ...current,
-                      checkInTime:
-                        undefined,
-                    }),
-                  );
-                }}
-                className={`
+                  )
+                }
+                className="
                   h-11
                   w-full
                   rounded-xl
                   border
+                  border-border
                   bg-surface
                   px-4
                   text-sm
                   text-slate-700
                   outline-none
+                  focus:border-primary
                   focus:ring-2
-                  ${
-                    fieldErrors.checkInTime
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-                      : "border-border focus:border-primary focus:ring-blue-100"
-                  }
-                `}
+                  focus:ring-blue-100
+                "
               />
-
-              {fieldErrors.checkInTime && (
-                <p className="mt-1.5 text-xs text-red-600">
-                  {fieldErrors.checkInTime}
-                </p>
-              )}
-
             </div>
 
-
-            {/* Check out */}
-
             <div>
-
               <label
                 htmlFor="check-out-time"
                 className="mb-2 block text-sm font-medium text-slate-700"
@@ -389,53 +400,32 @@ export default function AttendanceCorrectionPage() {
                 id="check-out-time"
                 type="datetime-local"
                 value={checkOutTime}
-                onChange={(event) => {
+                onChange={(event) =>
                   setCheckOutTime(
                     event.target.value,
-                  );
-
-                  setFieldErrors(
-                    (current) => ({
-                      ...current,
-                      checkOutTime:
-                        undefined,
-                    }),
-                  );
-                }}
-                className={`
+                  )
+                }
+                className="
                   h-11
                   w-full
                   rounded-xl
                   border
+                  border-border
                   bg-surface
                   px-4
                   text-sm
                   text-slate-700
                   outline-none
+                  focus:border-primary
                   focus:ring-2
-                  ${
-                    fieldErrors.checkOutTime
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-                      : "border-border focus:border-primary focus:ring-blue-100"
-                  }
-                `}
+                  focus:ring-blue-100
+                "
               />
-
-              {fieldErrors.checkOutTime && (
-                <p className="mt-1.5 text-xs text-red-600">
-                  {fieldErrors.checkOutTime}
-                </p>
-              )}
-
             </div>
 
           </div>
 
-
-          {/* Remarks */}
-
           <div>
-
             <label
               htmlFor="remarks"
               className="mb-2 block text-sm font-medium text-slate-700"
@@ -446,60 +436,50 @@ export default function AttendanceCorrectionPage() {
             <textarea
               id="remarks"
               value={remarks}
-              onChange={(event) => {
+              onChange={(event) =>
                 setRemarks(
                   event.target.value,
-                );
-
-                setFieldErrors(
-                  (current) => ({
-                    ...current,
-                    remarks: undefined,
-                  }),
-                );
-              }}
+                )
+              }
               rows={4}
               placeholder="Explain why this attendance record is being corrected..."
-              className={`
+              className="
                 w-full
                 resize-none
                 rounded-xl
                 border
+                border-border
                 bg-surface
                 px-4
                 py-3
                 text-sm
                 text-slate-700
                 outline-none
+                focus:border-primary
                 focus:ring-2
-                ${
-                  fieldErrors.remarks
-                    ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-                    : "border-border focus:border-primary focus:ring-blue-100"
-                }
-              `}
+                focus:ring-blue-100
+              "
             />
-
-            {fieldErrors.remarks && (
-              <p className="mt-1.5 text-xs text-red-600">
-                {fieldErrors.remarks}
-              </p>
-            )}
-
           </div>
 
-
-          {/* Actions */}
-
-          <div className="flex justify-end gap-3 border-t border-border pt-5">
+          <div className="
+            flex
+            justify-end
+            gap-3
+            border-t
+            border-border
+            pt-5
+          ">
 
             <Button
               type="button"
               variant="secondary"
-              onClick={() =>
-                navigate(-1)
-              }
               disabled={submitting}
+              onClick={() =>
+                navigate(
+                  `/admin/attendance/${publicUuid}`,
+                )
+              }
             >
               Cancel
             </Button>

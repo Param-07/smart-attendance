@@ -36,7 +36,6 @@ export async function createTeacher(
     remarks: formData.remarks || null,
   };
 
-  console.log(payload)
   const response =
     await apiClient.post<
       ApiResponse<TeacherResponseDto>
@@ -258,7 +257,7 @@ export async function updateTeacher(
     remarks: string | null;
   }>,
 ): Promise<Teacher> {
-  console.log(data)
+
   const response =
     await apiClient.put<
       ApiResponse<TeacherResponseDto>

@@ -36,3 +36,17 @@ class StorageService:
             self.client.storage.from_(bucket_name)
                 .get_public_url(file_path)
         )
+
+    def get_signed_url(self, bucket_name:str, file_path: str) -> str:
+
+        response = (
+            self.client.storage.from_(bucket_name)
+                .create_signed_url(
+                    file_path,
+                    60,
+                )
+        )
+
+        # print(response)
+
+        return response["signedURL"]

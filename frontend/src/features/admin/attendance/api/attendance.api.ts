@@ -122,8 +122,14 @@ function mapAttendance(
     checkInSelfiePath:
       payload.check_in_selfie_path,
 
+    checkInUrl:
+      payload.check_in_selfie_url,
+
     checkOutSelfiePath:
       payload.check_out_selfie_path,
+
+    checkOutUrl:
+      payload.check_out_selfie_url,
 
     status:
       cleanEnumValue(

@@ -2,7 +2,6 @@ import Card from "@/shared/components/Card";
 import Button from "@/shared/components/Button";
 
 import {
-  ArrowLeft,
   CheckCircle2,
   Clock3,
   Expand,
@@ -183,7 +182,6 @@ export default function AttendanceDetails({
   attendance,
   isLoading = false,
   onEdit,
-  onClose,
 }: AttendanceDetailsProps) {
   if (isLoading) {
     return (
@@ -237,28 +235,6 @@ export default function AttendanceDetails({
       ">
 
         <div className="flex items-center gap-4">
-
-          {onClose && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="
-                flex
-                h-9
-                w-9
-                shrink-0
-                items-center
-                justify-center
-                rounded-lg
-                text-slate-500
-                transition-colors
-                hover:bg-slate-100
-                hover:text-slate-900
-              "
-            >
-              <ArrowLeft size={19} />
-            </button>
-          )}
 
           <div>
             <div className="
@@ -792,10 +768,10 @@ export default function AttendanceDetails({
               bg-slate-100
             ">
 
-              {attendance.checkInSelfiePath ? (
+              {attendance.checkInUrl ? (
                 <img
                   src={
-                    attendance.checkInSelfiePath
+                    attendance.checkInUrl
                   }
                   alt="Check-in verification selfie"
                   className="
@@ -898,10 +874,10 @@ export default function AttendanceDetails({
                 bg-white
               ">
 
-                {attendance.checkOutSelfiePath ? (
+                {attendance.checkOutUrl ? (
                   <img
                     src={
-                      attendance.checkOutSelfiePath
+                      attendance.checkOutUrl
                     }
                     alt="Check-out selfie"
                     className="

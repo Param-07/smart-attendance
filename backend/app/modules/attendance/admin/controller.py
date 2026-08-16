@@ -12,6 +12,8 @@ from app.core.enums import UserRole
 from app.core.responses import ApiResponse
 from app.modules.authentication.service import AuthService
 
+from app.services.storage.selfie_storage_service import StorageService
+
 
 class AdminAttendanceController:
 
@@ -19,6 +21,7 @@ class AdminAttendanceController:
 
         self.service = AdminAttendanceService()
         self.auth_service = AuthService()
+        self.storage_service = StorageService()
 
         self.report_request_schema = AttendanceReportRequestSchema()
         self.correction_request_schema = AttendanceCorrectionRequestSchema()
@@ -81,6 +84,32 @@ class AdminAttendanceController:
         response = self.response_schema.dump(
             attendance
         )
+
+        if attendance.check_in_selfie_path:
+            signed_url = self.storage_service.get_signed_url(
+                "attendance-selfies",
+                attendance.check_in_selfie_path,
+            )
+
+            response["check_in_selfie_url"] = (
+                signed_url
+            )
+
+        else:
+            response["check_in_selfie_url"] = None
+
+        if attendance.check_out_selfie_path:
+            signed_url = self.storage_service.get_signed_url(
+                "attendance-selfies",
+                attendance.check_out_selfie_path,
+            )
+
+            response["check_out_selfie_url"] = (
+                signed_url
+            )
+
+        else:
+            response["check_out_selfie_url"] = None
 
         return ApiResponse.success(
             message="Attendance fetched successfully.",

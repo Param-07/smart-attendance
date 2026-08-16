@@ -63,7 +63,11 @@ export interface Attendance {
 
   checkInSelfiePath: string | null;
 
+  checkInUrl: string | null;
+
   checkOutSelfiePath: string | null;
+
+  checkOutUrl: string | null;
 
   status: AttendanceStatus;
 
