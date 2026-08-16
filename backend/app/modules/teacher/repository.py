@@ -7,12 +7,13 @@ from app.models import Teacher, Account
 from app.core.pagination import PaginationResult
 from app.modules.common.database.base_repository import BaseRepository
 
+
 class TeacherRepository(BaseRepository[Teacher]):
     """
     Repository responsible for Teacher related
     database operations.
     """
-    
+
     SORTABLE_COLUMNS = {
         "first_name": Teacher.first_name,
         "last_name": Teacher.last_name,
@@ -26,54 +27,118 @@ class TeacherRepository(BaseRepository[Teacher]):
     def __init__(self):
         super().__init__(Teacher)
 
-    def get_by_employee_code(self, employee_code: str) -> Teacher | None:
-        return (
-            db.session.query(Teacher)
-                .filter(Teacher.employee_code == employee_code)
-                .first()
-        )
-    
-    def get_by_official_email(self, email: str) -> Teacher | None:
-        return (
-            db.session.query(Teacher)
-                .filter(Teacher.official_email ==  email)
-                .first()
-        )
-    
-    def get_by_account_public_uuid(self, account_public_uuid: str) -> Teacher | None:
-        account = (
-            db.session.query(Account)
-                .filter(Account.public_uuid == account_public_uuid)
-                .first()
-        )
+    def get_by_employee_code(
+        self,
+        employee_code: str,
+    ) -> Teacher | None:
 
         return (
             db.session.query(Teacher)
-                .filter(Teacher.account_id == account.id)
-                .first()
+            .filter(
+                Teacher.employee_code == employee_code
+            )
+            .first()
         )
-    
-    def get_active_teachers(self) -> list[Teacher]:
+
+    def get_by_official_email(
+        self,
+        email: str,
+    ) -> Teacher | None:
+
         return (
             db.session.query(Teacher)
-                .filter(
-                    Teacher.is_active.is_(True)
-                )
-                .all()
+            .filter(
+                Teacher.official_email == email
+            )
+            .first()
         )
-    
-    def get_face_registered_teachers(self) -> list[Teacher]:
-        return (
+
+    def get_by_public_uuid(
+        self,
+        public_uuid: str,
+        school_id: int | None = None,
+    ) -> Teacher | None:
+
+        query = (
             db.session.query(Teacher)
-                .filter(
-                    Teacher.face_registered.is_(True)
-                )
-                .all()
+            .filter(
+                Teacher.public_uuid == public_uuid
+            )
         )
-    
+
+        if school_id is not None:
+            query = query.filter(
+                Teacher.school_id == school_id
+            )
+
+        return query.first()
+
+    def get_by_account_public_uuid(
+        self,
+        account_public_uuid: str,
+        school_id: int | None = None,
+    ) -> Teacher | None:
+
+        query = (
+            db.session.query(Teacher)
+            .join(
+                Account,
+                Teacher.account_id == Account.id,
+            )
+            .filter(
+                Account.public_uuid == account_public_uuid
+            )
+        )
+
+        if school_id is not None:
+            query = query.filter(
+                Teacher.school_id == school_id
+            )
+
+        return query.first()
+
+    def get_active_teachers(
+        self,
+        school_id: int | None = None,
+    ) -> list[Teacher]:
+
+        query = (
+            db.session.query(Teacher)
+            .filter(
+                Teacher.is_active.is_(True)
+            )
+        )
+
+        if school_id is not None:
+            query = query.filter(
+                Teacher.school_id == school_id
+            )
+
+        return query.all()
+
+    def get_face_registered_teachers(
+        self,
+        school_id: int | None = None,
+    ) -> list[Teacher]:
+
+        query = (
+            db.session.query(Teacher)
+            .filter(
+                Teacher.face_registered.is_(True)
+            )
+        )
+
+        if school_id is not None:
+            query = query.filter(
+                Teacher.school_id == school_id
+            )
+
+        return query.all()
+
     def get_teachers(
         self,
         *,
+        school_id: int | None = None,
         search: str | None = None,
         department: str | None = None,
         designation: str | None = None,
@@ -86,6 +151,11 @@ class TeacherRepository(BaseRepository[Teacher]):
     ) -> PaginationResult[Teacher]:
 
         query = db.session.query(Teacher)
+
+        if school_id is not None:
+            query = query.filter(
+                Teacher.school_id == school_id
+            )
 
         if department:
             query = query.filter(
@@ -125,9 +195,13 @@ class TeacherRepository(BaseRepository[Teacher]):
         )
 
         if order == "asc":
-            query = query.order_by(sort_column.asc())
+            query = query.order_by(
+                sort_column.asc()
+            )
         else:
-            query = query.order_by(sort_column.desc())
+            query = query.order_by(
+                sort_column.desc()
+            )
 
         total_records = query.count()
 
@@ -144,51 +218,81 @@ class TeacherRepository(BaseRepository[Teacher]):
             page_size=page_size,
             total_records=total_records,
         )
-    
-    def get_statistics(self):
 
-        stats = (
-            db.session.query(
-                func.count(Teacher.id).label("total_teachers"),
+    def get_statistics(
+        self,
+        school_id: int | None = None,
+    ):
 
-                func.sum(
-                    case(
-                        (Teacher.is_active.is_(True), 1),
-                        else_=0
-                    )
-                ).label("active_teachers"),
+        query = db.session.query(
+            func.count(
+                Teacher.id
+            ).label("total_teachers"),
 
-                func.sum(
-                    case(
-                        (Teacher.is_active.is_(False), 1),
-                        else_= 0
-                    )
-                ).label("inactive_teachers"),
+            func.sum(
+                case(
+                    (
+                        Teacher.is_active.is_(True),
+                        1,
+                    ),
+                    else_=0,
+                )
+            ).label("active_teachers"),
 
-                func.sum(
-                    case(
-                        (Teacher.face_registered.is_(True), 1),
-                        else_=0,
-                    )
-                ).label("face_registered"),
+            func.sum(
+                case(
+                    (
+                        Teacher.is_active.is_(False),
+                        1,
+                    ),
+                    else_=0,
+                )
+            ).label("inactive_teachers"),
 
-                func.sum(
-                    case(
-                        (Teacher.face_registered.is_(False), 1),
-                        else_=0,
-                    )
-                ).label("face_not_registered")
-            ).one()
+            func.sum(
+                case(
+                    (
+                        Teacher.face_registered.is_(True),
+                        1,
+                    ),
+                    else_=0,
+                )
+            ).label("face_registered"),
+
+            func.sum(
+                case(
+                    (
+                        Teacher.face_registered.is_(False),
+                        1,
+                    ),
+                    else_=0,
+                )
+            ).label("face_not_registered"),
         )
+
+        if school_id is not None:
+            query = query.filter(
+                Teacher.school_id == school_id
+            )
+
+        stats = query.one()
 
         return {
             "total_teachers": stats.total_teachers,
-            "active_teachers": stats.active_teachers or 0,
-            "inactive_teachers": stats.inactive_teachers or 0,
-            "face_registered": stats.face_registered or 0,
-            "face_not_registered": stats.face_not_registered or 0,
+            "active_teachers": (
+                stats.active_teachers or 0
+            ),
+            "inactive_teachers": (
+                stats.inactive_teachers or 0
+            ),
+            "face_registered": (
+                stats.face_registered or 0
+            ),
+            "face_not_registered": (
+                stats.face_not_registered or 0
+            ),
         }
-    
+
     def update_activation(
         self,
         teacher: Teacher,

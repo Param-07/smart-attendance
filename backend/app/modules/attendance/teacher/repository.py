@@ -10,6 +10,7 @@ from app.models import Attendance, Teacher
 
 
 class TeacherAttendanceRepository(BaseRepository[Attendance]):
+
     SORTABLE_COLUMNS = {
         "attendance_date": Attendance.attendance_date,
         "check_in_time": Attendance.check_in_time,
@@ -23,8 +24,9 @@ class TeacherAttendanceRepository(BaseRepository[Attendance]):
 
     def get_today_attendance(
         self,
-        teacher_id: int
+        teacher_id: int,
     ) -> Attendance | None:
+
         return (
             db.session.query(Attendance)
             .filter(
@@ -35,32 +37,38 @@ class TeacherAttendanceRepository(BaseRepository[Attendance]):
         )
 
     def has_checked_in_today(
-            self,
-            teacher_id: int
+        self,
+        teacher_id: int,
     ) -> bool:
 
         return (
-            self.get_today_attendance(teacher_id) 
-                is not None
+            self.get_today_attendance(teacher_id)
+            is not None
         )
 
     def has_checked_out_today(
-            self,
-            teacher_id: int
+        self,
+        teacher_id: int,
     ) -> bool:
 
-        attendance = self.get_today_attendance(teacher_id)
+        attendance = self.get_today_attendance(
+            teacher_id
+        )
 
         return (
             attendance is not None
             and attendance.check_out_time is not None
         )
-    
+
     def get_open_attendance(
         self,
         teacher_id: int,
-        attendance_date = date.today(),
+        attendance_date: date | None = None,
     ) -> Attendance | None:
+
+        if attendance_date is None:
+            attendance_date = date.today()
+
         return (
             db.session.query(Attendance)
             .filter(
@@ -145,4 +153,4 @@ class TeacherAttendanceRepository(BaseRepository[Attendance]):
             page=page,
             page_size=page_size,
             total_records=total_records,
-        )
+        )  

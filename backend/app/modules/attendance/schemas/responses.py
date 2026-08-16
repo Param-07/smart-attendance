@@ -34,7 +34,7 @@ class AttendanceResponseSchema(Schema):
 
     check_out_accuracy = fields.Float(dump_only=True)
 
-    face_match_score = fields.Float(
+    check_in_face_match_score = fields.Float(
         allow_none=True,
         dump_only=True,
     )

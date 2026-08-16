@@ -1,6 +1,7 @@
 from app.core.exceptions import (
     UnauthorizedException,
     ForbiddenException,
+    ConflictException
 )
 
 
@@ -45,4 +46,13 @@ class PasswordResetRequiredException(ForbiddenException):
     def __init__(self):
         super().__init__(
             "Password reset is required."
+        )
+
+class AccountUsernameAlreadyExistsException(ConflictException):
+
+    error_code = "ACCOUNT_USERNAME_ALREADY_EXISTS"
+
+    def __init__(self):
+        super().__init__(
+            "Username is already assigned. Please choose a unique username."
         )

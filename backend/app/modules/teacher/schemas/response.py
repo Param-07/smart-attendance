@@ -30,6 +30,12 @@ class TeacherListResponseSchema(Schema):
     designation = fields.String()
     employment_status = fields.String()
     face_registered = fields.Boolean()
+    first_name = fields.String()
+    middle_name = fields.String()
+    last_name = fields.String()
+    is_active = fields.Boolean()
+    official_email = fields.Email()
+    mobile_number = fields.String()
 
 class TeacherStatisticsResponseSchema(Schema):
 

@@ -20,9 +20,10 @@ from app.modules.authentication.routes import auth_bp
 from app.modules.teacher.routes import teacher_bp
 from app.modules.school.route.school import school_bp
 from app.modules.attendance.teacher.routes import teacher_attendance_bp
+from app.modules.attendance.admin.routes import attendance_admin_bp
 from app.modules.teacherFace.routes import teacher_face_bp
 
-from app.cli.seed import create_admin
+from app.cli.seed import create_super_admin
 
 from app.core.logging import get_logger
 
@@ -38,7 +39,7 @@ def create_app() -> Flask:
 
     app = Flask(__name__)
 
-    app.cli.add_command(create_admin)
+    app.cli.add_command(create_super_admin)
 
     # -----------------------------------------------------
     # Load Configuration
@@ -136,6 +137,11 @@ def create_app() -> Flask:
     app.register_blueprint(
         teacher_attendance_bp,
         url_prefix=f"{API_PREFIX}/attendance",
+    )
+
+    app.register_blueprint(
+        attendance_admin_bp,
+        url_prefix=f"{API_PREFIX}/admin/attendance"
     )
 
     app.register_blueprint(

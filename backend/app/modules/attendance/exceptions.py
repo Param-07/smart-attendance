@@ -24,3 +24,8 @@ class AttendanceCheckOutFailedException(ConflictException):
 
     def __init__(self):
         super().__init__("Something went wrong while checking you out. Try Again !")
+
+class AttendanceSelfieNotProvidedException(ConflictException):
+
+    def __init__(self):
+        super().__init__("Selfie Attendance is neccessary")

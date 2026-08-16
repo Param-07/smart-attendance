@@ -19,6 +19,7 @@ from app.models import Account, Teacher, BaseModel
 
 
 class Attendance(BaseModel):
+
     __tablename__ = "attendances"
 
     __table_args__ = (
@@ -32,7 +33,10 @@ class Attendance(BaseModel):
     # Relationships
 
     teacher_id: Mapped[int] = mapped_column(
-        ForeignKey("teachers.id"),
+        ForeignKey(
+            "teachers.id",
+            ondelete="RESTRICT",
+        ),
         nullable=False,
         index=True,
     )
@@ -60,19 +64,31 @@ class Attendance(BaseModel):
         nullable=True,
     )
 
-    # Selfie
+    # Check-in Selfie
 
     check_in_selfie_path: Mapped[str] = mapped_column(
         String(500),
         nullable=False,
     )
-    
-    face_match_score: Mapped[float | None] = mapped_column(
+
+    check_in_face_match_score: Mapped[float | None] = mapped_column(
         Float,
         nullable=True,
     )
 
-    # Check In/Out
+    # Check-out Selfie
+
+    check_out_selfie_path: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    check_out_face_match_score: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+
+    # Check-in GPS
 
     check_in_latitude: Mapped[Decimal] = mapped_column(
         Numeric(10, 7),
@@ -88,6 +104,8 @@ class Attendance(BaseModel):
         Float,
         nullable=True,
     )
+
+    # Check-out GPS
 
     check_out_latitude: Mapped[Decimal | None] = mapped_column(
         Numeric(10, 7),
@@ -120,7 +138,10 @@ class Attendance(BaseModel):
     )
 
     corrected_by: Mapped[int | None] = mapped_column(
-        ForeignKey("accounts.id"),
+        ForeignKey(
+            "accounts.id",
+            ondelete="SET NULL",
+        ),
         nullable=True,
     )
 
