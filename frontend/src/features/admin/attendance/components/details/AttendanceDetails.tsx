@@ -1,72 +1,205 @@
 import Card from "@/shared/components/Card";
 import Button from "@/shared/components/Button";
-import { ArrowLeft } from "lucide-react";
 
-import type { AttendanceDetailsProps } from "./AttendanceDetails.types";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock3,
+  Expand,
+  FilePenLine,
+  LogOut,
+  MapPin,
+  User,
+} from "lucide-react";
 
-// Helper functions
+import type {
+  AttendanceDetailsProps,
+} from "./AttendanceDetails.types";
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+function formatDate(
+  value: string,
+): string {
+  return new Date(value).toLocaleDateString(
+    "en-US",
+    {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+  );
+}
+
+function formatShortDate(
+  value: string,
+): string {
+  return new Date(value).toLocaleDateString(
+    "en-US",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    },
+  );
 }
 
 function formatTime(
-  dateTimeString: string | null,
+  value: string | null | undefined,
 ): string {
-  if (!dateTimeString) {
+  if (!value) {
     return "—";
   }
 
-  const date = new Date(dateTimeString);
-  return date.toLocaleString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
+  return new Date(value).toLocaleTimeString(
+    "en-US",
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    },
+  );
 }
 
-function formatDecimal(
-  value: string | null,
+function formatDateTime(
+  value: string | null | undefined,
 ): string {
-  if (!value) return "—";
-  return parseFloat(value).toFixed(6);
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  return `${formatShortDate(value)} · ${date.toLocaleTimeString(
+    "en-US",
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    },
+  )}`;
 }
 
-function getStatusColor(
+function formatCoordinate(
+  value: string | null | undefined,
+): string {
+  if (!value) {
+    return "—";
+  }
+
+  const number = Number(value);
+
+  if (Number.isNaN(number)) {
+    return value;
+  }
+
+  return number.toFixed(6);
+}
+
+function formatScore(
+  value: number | null | undefined,
+): string {
+  if (value == null) {
+    return "—";
+  }
+
+  return `${(value * 100).toFixed(2)}%`;
+}
+
+function formatStatus(
+  status: string,
+): string {
+  return status
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) =>
+      char.toUpperCase(),
+    );
+}
+
+function getStatusClasses(
   status: string,
 ): string {
   switch (status) {
     case "OPEN":
-      return "text-amber-700 bg-amber-50 border-amber-200";
-    case "COMPLETED":
-      return "text-green-700 bg-green-50 border-green-200";
+      return "border-amber-200 bg-amber-50 text-amber-700";
+
+    case "SUCCESS":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+
+    case "FAILED":
+      return "border-red-200 bg-red-50 text-red-700";
+
     case "CORRECTED":
-      return "text-blue-700 bg-blue-50 border-blue-200";
+      return "border-blue-200 bg-blue-50 text-blue-700";
+
     default:
-      return "text-gray-700 bg-gray-50 border-gray-200";
+      return "border-slate-200 bg-slate-50 text-slate-700";
   }
+}
+
+function getStatusDot(
+  status: string,
+): string {
+  switch (status) {
+    case "OPEN":
+      return "bg-amber-500";
+
+    case "SUCCESS":
+      return "bg-emerald-500";
+
+    case "FAILED":
+      return "bg-red-500";
+
+    case "CORRECTED":
+      return "bg-blue-500";
+
+    default:
+      return "bg-slate-400";
+  }
+}
+
+function DetailItem({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <p className="text-xs font-medium text-slate-500">
+        {label}
+      </p>
+
+      <div className="mt-1 text-sm font-medium text-slate-900">
+        {children}
+      </div>
+    </div>
+  );
 }
 
 export default function AttendanceDetails({
   attendance,
   isLoading = false,
-  isEditing = false,
   onEdit,
   onClose,
 }: AttendanceDetailsProps) {
   if (isLoading) {
     return (
       <Card className="rounded-2xl border border-border bg-surface p-8">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
-          <p className="mt-2 text-sm text-slate-600">
+        <div className="flex flex-col items-center justify-center">
+          <div className="
+            h-8
+            w-8
+            animate-spin
+            rounded-full
+            border-4
+            border-slate-200
+            border-t-blue-600
+          " />
+
+          <p className="mt-3 text-sm text-slate-500">
             Loading attendance details...
           </p>
         </div>
@@ -74,293 +207,789 @@ export default function AttendanceDetails({
     );
   }
 
+  const teacher =
+    attendance.teacher;
+
+  const hasCheckInLocation =
+    Boolean(
+      attendance.checkInLatitude &&
+        attendance.checkInLongitude,
+    );
+
+  const hasCheckOutLocation =
+    Boolean(
+      attendance.checkOutLatitude &&
+        attendance.checkOutLongitude,
+    );
+
   return (
     <div className="space-y-6">
+
       {/* Header */}
 
-      <div className="flex items-center justify-between">
+      <div className="
+        flex
+        flex-col
+        gap-4
+        sm:flex-row
+        sm:items-center
+        sm:justify-between
+      ">
+
         <div className="flex items-center gap-4">
+
           {onClose && (
             <button
+              type="button"
               onClick={onClose}
-              className="text-slate-600 hover:text-slate-900"
+              className="
+                flex
+                h-9
+                w-9
+                shrink-0
+                items-center
+                justify-center
+                rounded-lg
+                text-slate-500
+                transition-colors
+                hover:bg-slate-100
+                hover:text-slate-900
+              "
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={19} />
             </button>
           )}
+
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">
-              {attendance.teacher.displayName}
-            </h1>
-            <p className="text-sm text-slate-600">
-              Employee Code: {attendance.teacher.employeeCode}
+            <div className="
+              flex
+              flex-wrap
+              items-center
+              gap-3
+            ">
+              <h1 className="
+                text-3xl
+                font-semibold
+                tracking-tight
+                text-slate-900
+              ">
+                {teacher.displayName}
+              </h1>
+
+              <span
+                className={`
+                  inline-flex
+                  items-center
+                  gap-2
+                  rounded-full
+                  border
+                  px-3
+                  py-1
+                  text-xs
+                  font-medium
+                  ${getStatusClasses(
+                    attendance.status,
+                  )}
+                `}
+              >
+                <span
+                  className={`
+                    h-1.5
+                    w-1.5
+                    rounded-full
+                    ${getStatusDot(
+                      attendance.status,
+                    )}
+                  `}
+                />
+
+                {formatStatus(
+                  attendance.status,
+                )}
+              </span>
+            </div>
+
+            <p className="mt-1 text-sm text-slate-500">
+              {teacher.employeeCode}
+              {" · "}
+              {teacher.designation}
+              {" · "}
+              {teacher.department}
+            </p>
+
+            <p className="mt-1 text-sm text-slate-400">
+              {formatDate(
+                attendance.attendanceDate,
+              )}
             </p>
           </div>
+
         </div>
 
         {onEdit && (
-          <Button onClick={onEdit}>
-            {isEditing ? "Close" : "Edit"}
+          <Button
+            onClick={onEdit}
+          >
+            <FilePenLine size={16} />
+            Correct Attendance
           </Button>
         )}
+
       </div>
 
-      {/* Main Cards */}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Attendance Summary Card */}
+      {/* Main content */}
 
-        <Card className="rounded-2xl border border-border bg-surface p-6">
-          <h2 className="mb-6 text-lg font-semibold text-slate-900">
-            Attendance Summary
-          </h2>
+      <div className="
+        grid
+        gap-6
+        lg:grid-cols-12
+      ">
 
-          <div className="space-y-4">
-            {/* Attendance Date */}
+        {/* Left column */}
 
-            <div>
-              <label className="text-xs font-medium text-slate-500">
-                Attendance Date
-              </label>
-              <p className="mt-1 text-sm font-medium text-slate-900">
+        <div className="
+          flex
+          flex-col
+          gap-6
+          lg:col-span-7
+        ">
+
+          {/* Attendance Overview */}
+
+          <Card className="
+            rounded-2xl
+            border
+            border-border
+            bg-surface
+            p-6
+          ">
+
+            <div className="
+              mb-6
+              flex
+              items-center
+              justify-between
+            ">
+              <div>
+                <h2 className="
+                  text-lg
+                  font-semibold
+                  text-slate-900
+                ">
+                  Attendance Overview
+                </h2>
+
+                <p className="
+                  mt-1
+                  text-sm
+                  text-slate-500
+                ">
+                  Complete attendance and verification information.
+                </p>
+              </div>
+            </div>
+
+            <div className="
+              grid
+              gap-5
+              sm:grid-cols-2
+            ">
+
+              <DetailItem label="Attendance Date">
                 {formatDate(
                   attendance.attendanceDate,
                 )}
-              </p>
+              </DetailItem>
+
+              <DetailItem label="Status">
+                <span
+                  className={`
+                    inline-flex
+                    items-center
+                    gap-2
+                    rounded-full
+                    border
+                    px-3
+                    py-1
+                    text-xs
+                    font-medium
+                    ${getStatusClasses(
+                      attendance.status,
+                    )}
+                  `}
+                >
+                  <span
+                    className={`
+                      h-1.5
+                      w-1.5
+                      rounded-full
+                      ${getStatusDot(
+                        attendance.status,
+                      )}
+                    `}
+                  />
+
+                  {formatStatus(
+                    attendance.status,
+                  )}
+                </span>
+              </DetailItem>
+
+              <DetailItem label="Check-in">
+                <span className="inline-flex items-center gap-2">
+                  <Clock3
+                    size={15}
+                    className="text-slate-400"
+                  />
+
+                  {formatTime(
+                    attendance.checkInTime,
+                  )}
+                </span>
+              </DetailItem>
+
+              <DetailItem label="Check-out">
+                <span className="inline-flex items-center gap-2">
+                  <Clock3
+                    size={15}
+                    className="text-slate-400"
+                  />
+
+                  {formatTime(
+                    attendance.checkOutTime,
+                  )}
+                </span>
+              </DetailItem>
+
+              <DetailItem label="Check-in GPS Accuracy">
+                {attendance.checkInAccuracy != null
+                  ? `± ${attendance.checkInAccuracy.toFixed(1)} m`
+                  : "—"}
+              </DetailItem>
+
+              <DetailItem label="Face Match Score">
+                {formatScore(
+                  attendance.checkInFaceMatchScore,
+                )}
+              </DetailItem>
+
+              <DetailItem label="Check-in Location">
+                {hasCheckInLocation
+                  ? `${formatCoordinate(
+                      attendance.checkInLatitude,
+                    )}, ${formatCoordinate(
+                      attendance.checkInLongitude,
+                    )}`
+                  : "—"}
+              </DetailItem>
+
+              <DetailItem label="Check-out Location">
+                {hasCheckOutLocation
+                  ? `${formatCoordinate(
+                      attendance.checkOutLatitude,
+                    )}, ${formatCoordinate(
+                      attendance.checkOutLongitude,
+                    )}`
+                  : "—"}
+              </DetailItem>
+
             </div>
 
-            {/* Status */}
+          </Card>
 
-            <div>
-              <label className="text-xs font-medium text-slate-500">
-                Status
-              </label>
-              <div
-                className={`mt-1 inline-block rounded-full border px-3 py-1 text-sm font-medium ${getStatusColor(
-                  attendance.status,
-                )}`}
+
+          {/* Location */}
+
+          <Card className="
+            overflow-hidden
+            rounded-2xl
+            border
+            border-border
+            bg-surface
+          ">
+
+            <div className="
+              border-b
+              border-border
+              bg-surface
+              p-5
+            ">
+              <div className="flex items-center gap-3">
+
+                <div className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-blue-50
+                  text-blue-600
+                ">
+                  <MapPin size={18} />
+                </div>
+
+                <div>
+                  <h2 className="
+                    text-lg
+                    font-semibold
+                    text-slate-900
+                  ">
+                    Geolocation Map
+                  </h2>
+
+                  <p className="
+                    mt-0.5
+                    text-sm
+                    text-slate-500
+                  ">
+                    Check-in location
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+            <div className="
+              relative
+              h-64
+              w-full
+              overflow-hidden
+              bg-slate-100
+            ">
+
+              {hasCheckInLocation ? (
+                <iframe
+                  title="Check-in location map"
+                  className="
+                    h-full
+                    w-full
+                    border-0
+                  "
+                  loading="lazy"
+                  src={`https://www.google.com/maps?q=${attendance.checkInLatitude},${attendance.checkInLongitude}&output=embed`}
+                />
+              ) : (
+                <div className="
+                  absolute
+                  inset-0
+                  flex
+                  flex-col
+                  items-center
+                  justify-center
+                  text-center
+                ">
+                  <MapPin
+                    size={32}
+                    className="text-slate-300"
+                  />
+
+                  <p className="
+                    mt-2
+                    text-sm
+                    text-slate-500
+                  ">
+                    No check-in location captured.
+                  </p>
+                </div>
+              )}
+
+            </div>
+
+            {hasCheckInLocation && (
+              <div className="
+                border-t
+                border-border
+                bg-surface
+                p-4
+              ">
+                <div className="flex items-center gap-3">
+
+                  <MapPin
+                    size={18}
+                    className="text-blue-600"
+                  />
+
+                  <div>
+                    <p className="
+                      text-xs
+                      font-medium
+                      text-slate-500
+                    ">
+                      Check-in Point
+                    </p>
+
+                    <p className="
+                      mt-0.5
+                      text-sm
+                      font-medium
+                      text-slate-900
+                    ">
+                      {formatCoordinate(
+                        attendance.checkInLatitude,
+                      )}
+                      {"° , "}
+                      {formatCoordinate(
+                        attendance.checkInLongitude,
+                      )}
+                      {"°"}
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+          </Card>
+
+
+          {/* Correction Details */}
+
+          {attendance.status ===
+            "CORRECTED" && (
+            <Card className="
+              rounded-2xl
+              border
+              border-border
+              bg-surface
+              p-6
+            ">
+
+              <div className="
+                mb-5
+                flex
+                items-center
+                gap-3
+                border-b
+                border-border
+                pb-4
+              ">
+
+                <div className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-blue-50
+                  text-blue-600
+                ">
+                  <FilePenLine size={18} />
+                </div>
+
+                <h2 className="
+                  text-lg
+                  font-semibold
+                  text-slate-900
+                ">
+                  Correction Details
+                </h2>
+
+              </div>
+
+              <div className="
+                grid
+                gap-5
+                sm:grid-cols-2
+              ">
+
+                <div className="sm:col-span-2">
+                  <p className="
+                    text-xs
+                    font-medium
+                    text-slate-500
+                  ">
+                    Remarks
+                  </p>
+
+                  <p className="
+                    mt-1
+                    text-sm
+                    leading-6
+                    text-slate-700
+                  ">
+                    {attendance.remarks ||
+                      "No remarks provided."}
+                  </p>
+                </div>
+
+                <DetailItem label="Last Updated">
+                  {formatDateTime(
+                    attendance.updatedAt,
+                  )}
+                </DetailItem>
+
+              </div>
+
+            </Card>
+          )}
+
+        </div>
+
+
+        {/* Right column */}
+
+        <div className="
+          flex
+          flex-col
+          gap-6
+          lg:col-span-5
+        ">
+
+          {/* Check-in Selfie */}
+
+          <Card className="
+            overflow-hidden
+            rounded-2xl
+            border
+            border-border
+            bg-surface
+            shadow-sm
+          ">
+
+            <div className="
+              flex
+              items-center
+              justify-between
+              border-b
+              border-border
+              bg-surface
+              p-4
+            ">
+
+              <h2 className="
+                text-lg
+                font-semibold
+                text-slate-900
+              ">
+                Check-in Selfie
+              </h2>
+
+              <button
+                type="button"
+                className="
+                  rounded-full
+                  p-2
+                  text-slate-400
+                  transition-colors
+                  hover:bg-slate-100
+                  hover:text-slate-700
+                "
+                title="Expand Image"
               >
-                {attendance.status}
+                <Expand size={17} />
+              </button>
+
+            </div>
+
+            <div className="
+              relative
+              aspect-4/5
+              w-full
+              overflow-hidden
+              bg-slate-100
+            ">
+
+              {attendance.checkInSelfiePath ? (
+                <img
+                  src={
+                    attendance.checkInSelfiePath
+                  }
+                  alt="Check-in verification selfie"
+                  className="
+                    h-full
+                    w-full
+                    object-cover
+                  "
+                />
+              ) : (
+                <div className="
+                  absolute
+                  inset-0
+                  flex
+                  flex-col
+                  items-center
+                  justify-center
+                  px-6
+                  text-center
+                ">
+                  <User
+                    size={40}
+                    className="text-slate-300"
+                  />
+
+                  <p className="
+                    mt-3
+                    text-sm
+                    text-slate-500
+                  ">
+                    No check-in selfie captured
+                  </p>
+                </div>
+              )}
+
+              <div className="
+                absolute
+                bottom-0
+                left-0
+                right-0
+                bg-linear-to-t
+                from-black/70
+                to-transparent
+                p-4
+              ">
+
+                <div className="
+                  inline-flex
+                  items-center
+                  gap-2
+                  rounded-full
+                  border
+                  border-white/20
+                  bg-black/30
+                  px-3
+                  py-1.5
+                  text-xs
+                  font-medium
+                  text-white
+                  backdrop-blur-sm
+                ">
+
+                  <CheckCircle2 size={14} />
+
+                  {attendance.checkInTime
+                    ? `Verified at ${formatTime(
+                        attendance.checkInTime,
+                      )}`
+                    : "Not verified"}
+
+                </div>
+
               </div>
+
             </div>
 
-            {/* Check In */}
 
-            <div>
-              <label className="text-xs font-medium text-slate-500">
-                Check In Time
-              </label>
-              <p className="mt-1 text-sm font-medium text-slate-900">
-                {formatTime(attendance.checkInTime)}
-              </p>
-            </div>
+            {/* Checkout selfie */}
 
-            {/* Check Out */}
+            <div className="
+              flex
+              items-center
+              gap-3
+              border-t
+              border-border
+              bg-slate-50
+              p-4
+            ">
 
-            <div>
-              <label className="text-xs font-medium text-slate-500">
-                Check Out Time
-              </label>
-              <p className="mt-1 text-sm font-medium text-slate-900">
-                {formatTime(
-                  attendance.checkOutTime,
+              <div className="
+                flex
+                h-12
+                w-12
+                shrink-0
+                items-center
+                justify-center
+                overflow-hidden
+                rounded-lg
+                border
+                border-border
+                bg-white
+              ">
+
+                {attendance.checkOutSelfiePath ? (
+                  <img
+                    src={
+                      attendance.checkOutSelfiePath
+                    }
+                    alt="Check-out selfie"
+                    className="
+                      h-full
+                      w-full
+                      object-cover
+                    "
+                  />
+                ) : (
+                  <LogOut
+                    size={19}
+                    className="text-slate-400"
+                  />
                 )}
-              </p>
+
+              </div>
+
+              <div>
+
+                <p className="
+                  text-xs
+                  font-medium
+                  text-slate-500
+                ">
+                  Check-out Selfie
+                </p>
+
+                <p className="
+                  mt-0.5
+                  text-sm
+                  text-slate-700
+                ">
+                  {attendance.checkOutSelfiePath
+                    ? "Captured"
+                    : attendance.checkOutTime
+                      ? "Not captured (manual correction)"
+                      : "Pending check-out"}
+                </p>
+
+              </div>
+
             </div>
 
-            {/* Remarks */}
+          </Card>
 
-            {attendance.remarks && (
-              <div>
-                <label className="text-xs font-medium text-slate-500">
-                  Remarks
-                </label>
-                <p className="mt-1 text-sm text-slate-900">
-                  {attendance.remarks}
-                </p>
-              </div>
-            )}
-          </div>
-        </Card>
+          {/* Record information */}
 
-        {/* Check-In Details Card */}
+          <Card className="
+            rounded-2xl
+            border
+            border-border
+            bg-surface
+            p-6
+          ">
 
-        <Card className="rounded-2xl border border-border bg-surface p-6">
-          <h2 className="mb-6 text-lg font-semibold text-slate-900">
-            Check-In Details
-          </h2>
+            <h2 className="
+              mb-5
+              text-lg
+              font-semibold
+              text-slate-900
+            ">
+              Record Information
+            </h2>
 
-          <div className="space-y-4">
-            {/* Time */}
+            <div className="
+              space-y-4
+            ">
 
-            <div>
-              <label className="text-xs font-medium text-slate-500">
-                Time
-              </label>
-              <p className="mt-1 text-sm font-medium text-slate-900">
-                {formatTime(attendance.checkInTime)}
-              </p>
-            </div>
-
-            {/* Face Match Score */}
-
-            {attendance.faceMatchScore !==
-              null && (
-              <div>
-                <label className="text-xs font-medium text-slate-500">
-                  Face Match Score
-                </label>
-                <p className="mt-1 text-sm font-medium text-slate-900">
-                  {(
-                    attendance.faceMatchScore *
-                    100
-                  ).toFixed(2)}
-                  %
-                </p>
-              </div>
-            )}
-
-            {/* Location */}
-
-            <div>
-              <label className="text-xs font-medium text-slate-500">
-                Location (Latitude, Longitude)
-              </label>
-              <p className="mt-1 text-sm font-medium text-slate-900">
-                {formatDecimal(
-                  attendance.checkInLatitude,
+              <DetailItem label="Created">
+                {formatDateTime(
+                  attendance.createdAt,
                 )}
-                , {formatDecimal(
-                  attendance.checkInLongitude,
+              </DetailItem>
+
+              <DetailItem label="Last Updated">
+                {formatDateTime(
+                  attendance.updatedAt,
                 )}
-              </p>
+              </DetailItem>
+
             </div>
 
-            {/* Accuracy */}
+          </Card>
 
-            {attendance.checkInAccuracy !==
-              null && (
-              <div>
-                <label className="text-xs font-medium text-slate-500">
-                  GPS Accuracy
-                </label>
-                <p className="mt-1 text-sm font-medium text-slate-900">
-                  {attendance.checkInAccuracy.toFixed(
-                    2,
-                  )}{" "}
-                  m
-                </p>
-              </div>
-            )}
-          </div>
-        </Card>
+        </div>
+
       </div>
 
-      {/* Check-Out Details Card */}
-
-      {attendance.checkOutTime && (
-        <Card className="rounded-2xl border border-border bg-surface p-6">
-          <h2 className="mb-6 text-lg font-semibold text-slate-900">
-            Check-Out Details
-          </h2>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Time */}
-
-            <div>
-              <label className="text-xs font-medium text-slate-500">
-                Time
-              </label>
-              <p className="mt-1 text-sm font-medium text-slate-900">
-                {formatTime(
-                  attendance.checkOutTime,
-                )}
-              </p>
-            </div>
-
-            {/* Face Match Score */}
-
-            {attendance.faceMatchScore !==
-              null && (
-              <div>
-                <label className="text-xs font-medium text-slate-500">
-                  Face Match Score
-                </label>
-                <p className="mt-1 text-sm font-medium text-slate-900">
-                  {(
-                    attendance.faceMatchScore *
-                    100
-                  ).toFixed(2)}
-                  %
-                </p>
-              </div>
-            )}
-
-            {/* Location */}
-
-            {attendance.checkOutLatitude && (
-              <div>
-                <label className="text-xs font-medium text-slate-500">
-                  Location (Latitude, Longitude)
-                </label>
-                <p className="mt-1 text-sm font-medium text-slate-900">
-                  {formatDecimal(
-                    attendance.checkOutLatitude,
-                  )}
-                  , {formatDecimal(
-                    attendance.checkOutLongitude,
-                  )}
-                </p>
-              </div>
-            )}
-
-            {/* Accuracy */}
-
-            {attendance.checkOutAccuracy !==
-              null && (
-              <div>
-                <label className="text-xs font-medium text-slate-500">
-                  GPS Accuracy
-                </label>
-                <p className="mt-1 text-sm font-medium text-slate-900">
-                  {attendance.checkOutAccuracy.toFixed(
-                    2,
-                  )}{" "}
-                  m
-                </p>
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {/* Metadata Card */}
-
-      <Card className="rounded-2xl border border-border bg-surface p-6">
-        <h2 className="mb-6 text-lg font-semibold text-slate-900">
-          Record Information
-        </h2>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div>
-            <label className="text-xs font-medium text-slate-500">
-              Created At
-            </label>
-            <p className="mt-1 text-sm font-medium text-slate-900">
-              {formatTime(attendance.createdAt)}
-            </p>
-          </div>
-
-          <div>
-            <label className="text-xs font-medium text-slate-500">
-              Updated At
-            </label>
-            <p className="mt-1 text-sm font-medium text-slate-900">
-              {formatTime(attendance.updatedAt)}
-            </p>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }

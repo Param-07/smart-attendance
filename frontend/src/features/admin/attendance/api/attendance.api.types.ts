@@ -58,6 +58,10 @@ export interface AttendanceResponseDto {
 
   check_in_face_match_score: number | null;
 
+  check_in_selfie_path: string | null;
+
+  check_out_selfie_path: string | null;
+
   status: string;
 
   remarks: string | null;

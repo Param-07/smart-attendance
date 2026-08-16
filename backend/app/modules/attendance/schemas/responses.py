@@ -39,6 +39,16 @@ class AttendanceResponseSchema(Schema):
         dump_only=True,
     )
 
+    check_in_selfie_path = fields.String(
+        allow_none=True,
+        dump_only=True,
+    )
+
+    check_out_selfie_path = fields.String(
+        allow_none=True,
+        dump_only=True,
+    )
+
     status = fields.String(dump_only=True)
 
     remarks = fields.String(

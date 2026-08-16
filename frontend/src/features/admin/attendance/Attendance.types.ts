@@ -1,7 +1,9 @@
 export type AttendanceStatus =
   | "OPEN"
   | "SUCCESS"
-  | "FAILED";
+  | "FAILED"
+  | "CORRECTED";
+
 
 export interface AttendanceTeacher {
   id: string;
@@ -35,6 +37,7 @@ export interface AttendanceTeacher {
   remarks: string | null;
 }
 
+
 export interface Attendance {
   id: string;
 
@@ -56,7 +59,11 @@ export interface Attendance {
 
   checkOutAccuracy: number | null;
 
-  faceMatchScore: number | null;
+  checkInFaceMatchScore: number | null;
+
+  checkInSelfiePath: string | null;
+
+  checkOutSelfiePath: string | null;
 
   status: AttendanceStatus;
 

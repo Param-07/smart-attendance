@@ -5,15 +5,13 @@ import type { ApiResponse } from "@/shared/api/apiTypes";
 import type { Attendance } from "../Attendance.types";
 
 import type {
-    AttendanceCorrectionRequest,
+  AttendanceCorrectionRequest,
   AttendanceListResponseDto,
   AttendanceResponseDto,
 } from "./attendance.api.types";
 
 
-// --------------------------------------------------
 // Enum Helpers
-// --------------------------------------------------
 
 function cleanEnumValue(
   value: string,
@@ -24,13 +22,11 @@ function cleanEnumValue(
 }
 
 
-// --------------------------------------------------
 // Teacher Mapper
-// --------------------------------------------------
 
 function mapAttendanceTeacher(
   payload: AttendanceResponseDto["teacher"],
-) {
+): Attendance["teacher"] {
   return {
     id: payload.public_uuid,
 
@@ -85,9 +81,7 @@ function mapAttendanceTeacher(
 }
 
 
-// --------------------------------------------------
 // Attendance Mapper
-// --------------------------------------------------
 
 function mapAttendance(
   payload: AttendanceResponseDto,
@@ -122,8 +116,14 @@ function mapAttendance(
     checkOutAccuracy:
       payload.check_out_accuracy,
 
-    faceMatchScore:
+    checkInFaceMatchScore:
       payload.check_in_face_match_score,
+
+    checkInSelfiePath:
+      payload.check_in_selfie_path,
+
+    checkOutSelfiePath:
+      payload.check_out_selfie_path,
 
     status:
       cleanEnumValue(
@@ -147,22 +147,20 @@ function mapAttendance(
 }
 
 
-// --------------------------------------------------
 // Attendance Filters
-// --------------------------------------------------
 
 export interface AttendanceFilters {
-  teacherPublicUuid?: string;
   search?: string;
+
   status?: string;
+
   startDate?: string;
+
   endDate?: string;
 }
 
 
-// --------------------------------------------------
 // Get Attendance List
-// --------------------------------------------------
 
 export async function getAttendance(
   page = 1,
@@ -172,52 +170,59 @@ export async function getAttendance(
   attendance: Attendance[];
   pagination: AttendanceListResponseDto;
 }> {
-  const params: Record<string, string | number> = {
+  const params: Record<
+    string,
+    string | number
+  > = {
     page,
     page_size: pageSize,
   };
 
-  if (filters.teacherPublicUuid) {
-    params.teacher_public_uuid =
-      filters.teacherPublicUuid;
-  }
 
   if (filters.search?.trim()) {
     params.search =
       filters.search.trim();
   }
 
+
   if (filters.status) {
     params.status =
       filters.status;
   }
+
 
   if (filters.startDate) {
     params.start_date =
       filters.startDate;
   }
 
+
   if (filters.endDate) {
     params.end_date =
       filters.endDate;
   }
 
-  const response = await apiClient.get<
-    ApiResponse<AttendanceListResponseDto>
-  >(
-    "/admin/attendance/",
-    {
-      params,
-    },
-  );
+
+  const response =
+    await apiClient.get<
+      ApiResponse<AttendanceListResponseDto>
+    >(
+      "/admin/attendance/",
+      {
+        params,
+      },
+    );
+
 
   const data =
     response.data.data;
 
-    console.log(data)
+
   return {
     attendance:
-      data.items.map(mapAttendance),
+      data.items.map(
+        mapAttendance,
+      ),
 
     pagination:
       data,
@@ -225,39 +230,41 @@ export async function getAttendance(
 }
 
 
-// --------------------------------------------------
 // Get Attendance Details
-// --------------------------------------------------
 
 export async function getAttendanceById(
   publicUuid: string,
 ): Promise<Attendance> {
-  const response = await apiClient.get<
-    ApiResponse<AttendanceResponseDto>
-  >(
-    `/admin/attendance/${publicUuid}`,
-  );
+  const response =
+    await apiClient.get<
+      ApiResponse<AttendanceResponseDto>
+    >(
+      `/admin/attendance/${publicUuid}`,
+    );
+
 
   return mapAttendance(
     response.data.data,
   );
 }
 
-// --------------------------------------------------
-// Correct Attendance Details
-// --------------------------------------------------
+
+// Correct Attendance
 
 export async function correctAttendance(
   publicUuid: string,
   data: AttendanceCorrectionRequest,
 ): Promise<Attendance> {
-  const response = await apiClient.put<
-    ApiResponse<AttendanceResponseDto>
-  >(
-    `/admin/attendance/${publicUuid}/correct`,
-    data,
+  const response =
+    await apiClient.put<
+      ApiResponse<AttendanceResponseDto>
+    >(
+      `/admin/attendance/${publicUuid}/correct`,
+      data,
+    );
+
+
+  return mapAttendance(
+    response.data.data,
   );
-
-  return mapAttendance(response.data.data);
 }
-

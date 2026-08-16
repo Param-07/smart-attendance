@@ -44,6 +44,11 @@ class AdminAttendanceService:
             raise ValidationException(
                 "Start date cannot be after end date."
             )
+        elif (
+            start_date is None 
+            and end_date is None
+        ):
+            start_date = date.today()
 
         teacher_id = None
 
