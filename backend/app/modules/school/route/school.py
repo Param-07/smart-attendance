@@ -49,11 +49,11 @@ school_bp.route(
 )(school_controller.update_activation)
 
 school_bp.route(
-    "/<uuid:school_public_uuid>/configuration",
+    "/configuration",
     methods=["GET"],
 )(configuration_controller.get_configuration)
 
 school_bp.route(
-    "/<uuid:school_public_uuid>/configuration",
+    "/configuration",
     methods=["PUT"],
 )(configuration_controller.update_configuration)

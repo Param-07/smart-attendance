@@ -17,6 +17,7 @@ import TeacherCreatePage from "@/features/admin/teachers/TeacherCreatePage";
 import TeacherEditPage from "@/features/admin/teachers/TeacherEditPage";
 import { AttendancePage, AttendanceDetailsPage } from "@/features/admin/attendance";
 import SchoolPage from "@/features/admin/schools/SchoolPage";
+import SettingsPage from "@/features/admin/settings/SettingsPage";
 
 import TeacherDashboardPage from "@/features/teacher/DashboardPage";
 
@@ -102,6 +103,11 @@ const router = createBrowserRouter([
           {
             path: "school",
             element: <SchoolPage />
+          },
+
+          {
+            path: "settings",
+            element: <SettingsPage />
           }
         ],
       },

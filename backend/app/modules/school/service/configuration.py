@@ -22,12 +22,16 @@ class SchoolConfigurationService:
 
     def get_configuration(
         self,
-        school_public_uuid: str,
+        school_id: int,
         current_user: Account,
     ):
+        school = self.school_repository.get_by_id(school_id)
 
+        if school is None:
+            raise SchoolNotFoundException()
+        
         configuration = self._get_configuration(
-            school_public_uuid
+            school_public_uuid= school.public_uuid
         )
 
         self._authorize_school_access(
@@ -39,13 +43,18 @@ class SchoolConfigurationService:
 
     def update_configuration(
         self,
-        school_public_uuid: str,
+        school_id: str,
         data: dict,
         current_user: Account,
     ):
 
+        school = self.school_repository.get_by_id(school_id)
+        
+        if school is None:
+            raise SchoolNotFoundException()
+        
         configuration = self._get_configuration(
-            school_public_uuid
+            school_public_uuid= school.public_uuid
         )
 
         self._authorize_school_access(

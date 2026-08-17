@@ -41,14 +41,13 @@ class SchoolConfigurationController:
         UserRole.SCHOOL_ADMIN,
     )
     def get_configuration(
-        self,
-        school_public_uuid,
+        self
     ):
 
         current_user = self.auth_service.get_current_user()
 
         result = self.service.get_configuration(
-            school_public_uuid,
+            current_user.school_id,
             current_user,
         )
 
@@ -70,7 +69,6 @@ class SchoolConfigurationController:
     )
     def update_configuration(
         self,
-        school_public_uuid,
     ):
 
         current_user = self.auth_service.get_current_user()
@@ -82,7 +80,7 @@ class SchoolConfigurationController:
         )
 
         result = self.service.update_configuration(
-            school_public_uuid,
+            current_user.school_id,
             payload,
             current_user,
         )
