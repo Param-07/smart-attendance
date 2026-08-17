@@ -177,7 +177,8 @@ class SchoolController:
     # Update School
 
     @auth_required
-    @roles_required(UserRole.SUPER_ADMIN)
+    @roles_required(UserRole.SUPER_ADMIN,
+                    UserRole.SCHOOL_ADMIN)
     def update_school(
         self,
         public_uuid,
