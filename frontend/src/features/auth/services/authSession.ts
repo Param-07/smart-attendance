@@ -12,7 +12,6 @@ import {
 
 import {
   decodeAccessToken,
-  isTokenExpired,
   mapPayloadToAuthUser,
 } from "./jwt";
 
@@ -37,19 +36,27 @@ export function restoreSession():
     return null;
   }
 
-  const payload = decodeAccessToken(
-    session.accessToken,
-  );
+  try {
+    const payload = decodeAccessToken(
+      session.accessToken,
+    );
 
-  if (isTokenExpired(payload)) {
+    return {
+      session,
+      user: mapPayloadToAuthUser(payload),
+    };
+  } catch {
+    /*
+     * Access token is malformed.
+     *
+     * The API layer will handle refresh when
+     * the token is expired. Only destroy the
+     * session if the token cannot be decoded.
+     */
     clearStoredSession();
+
     return null;
   }
-
-  return {
-    session,
-    user: mapPayloadToAuthUser(payload),
-  };
 }
 
 export function destroySession(): void {

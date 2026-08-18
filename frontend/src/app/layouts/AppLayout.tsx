@@ -3,6 +3,9 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "@/features/navigation/components/Sidebar";
 import Topbar from "@/features/navigation/components/Topbar";
 
+import { destroySession } from "@/features/auth/services/authSession";
+import { useNavigate } from "react-router-dom";
+
 import {
   adminBottomNavigation,
   adminNavigation,
@@ -12,6 +15,7 @@ import {
 
 export default function AppLayout() {
   // TODO: Replace with authenticated user once AuthContext is integrated.
+  const navigate = useNavigate()
   const isAdmin = true;
 
   const navigation = isAdmin
@@ -24,8 +28,8 @@ export default function AppLayout() {
 
   const handleLogout = () => {
     // TODO:
-    // destroySession();
-    // navigate("/login");
+    destroySession();
+    navigate("/login");
   };
 
   return (

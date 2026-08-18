@@ -56,6 +56,7 @@ export async function updateSchool(
   publicUuid: string,
   data: UpdateSchoolRequest,
 ): Promise<School> {
+  console.log(data)
   const response = await apiClient.put<
     ApiResponse<SchoolResponseDto>
   >(

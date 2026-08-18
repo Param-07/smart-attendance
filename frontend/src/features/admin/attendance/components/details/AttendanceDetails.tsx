@@ -2,18 +2,15 @@ import Card from "@/shared/components/Card";
 import Button from "@/shared/components/Button";
 
 import {
-  CheckCircle2,
   Clock3,
-  Expand,
   FilePenLine,
-  LogOut,
   MapPin,
-  User,
 } from "lucide-react";
 
 import type {
   AttendanceDetailsProps,
 } from "./AttendanceDetails.types";
+import AttendanceSelfieCard from "./AttendanceSelfieCard";
 
 function formatDate(
   value: string,
@@ -285,11 +282,11 @@ export default function AttendanceDetails({
               </span>
             </div>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 ">
               {teacher.employeeCode}
-              {" · "}
+              {" | "}
               {teacher.designation}
-              {" · "}
+              {" | "}
               {teacher.department}
             </p>
 
@@ -716,212 +713,9 @@ export default function AttendanceDetails({
 
           {/* Check-in Selfie */}
 
-          <Card className="
-            overflow-hidden
-            rounded-2xl
-            border
-            border-border
-            bg-surface
-            shadow-sm
-          ">
-
-            <div className="
-              flex
-              items-center
-              justify-between
-              border-b
-              border-border
-              bg-surface
-              p-4
-            ">
-
-              <h2 className="
-                text-lg
-                font-semibold
-                text-slate-900
-              ">
-                Check-in Selfie
-              </h2>
-
-              <button
-                type="button"
-                className="
-                  rounded-full
-                  p-2
-                  text-slate-400
-                  transition-colors
-                  hover:bg-slate-100
-                  hover:text-slate-700
-                "
-                title="Expand Image"
-              >
-                <Expand size={17} />
-              </button>
-
-            </div>
-
-            <div className="
-              relative
-              aspect-4/5
-              w-full
-              overflow-hidden
-              bg-slate-100
-            ">
-
-              {attendance.checkInUrl ? (
-                <img
-                  src={
-                    attendance.checkInUrl
-                  }
-                  alt="Check-in verification selfie"
-                  className="
-                    h-full
-                    w-full
-                    object-cover
-                  "
-                />
-              ) : (
-                <div className="
-                  absolute
-                  inset-0
-                  flex
-                  flex-col
-                  items-center
-                  justify-center
-                  px-6
-                  text-center
-                ">
-                  <User
-                    size={40}
-                    className="text-slate-300"
-                  />
-
-                  <p className="
-                    mt-3
-                    text-sm
-                    text-slate-500
-                  ">
-                    No check-in selfie captured
-                  </p>
-                </div>
-              )}
-
-              <div className="
-                absolute
-                bottom-0
-                left-0
-                right-0
-                bg-linear-to-t
-                from-black/70
-                to-transparent
-                p-4
-              ">
-
-                <div className="
-                  inline-flex
-                  items-center
-                  gap-2
-                  rounded-full
-                  border
-                  border-white/20
-                  bg-black/30
-                  px-3
-                  py-1.5
-                  text-xs
-                  font-medium
-                  text-white
-                  backdrop-blur-sm
-                ">
-
-                  <CheckCircle2 size={14} />
-
-                  {attendance.checkInTime
-                    ? `Verified at ${formatTime(
-                        attendance.checkInTime,
-                      )}`
-                    : "Not verified"}
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            {/* Checkout selfie */}
-
-            <div className="
-              flex
-              items-center
-              gap-3
-              border-t
-              border-border
-              bg-slate-50
-              p-4
-            ">
-
-              <div className="
-                flex
-                h-12
-                w-12
-                shrink-0
-                items-center
-                justify-center
-                overflow-hidden
-                rounded-lg
-                border
-                border-border
-                bg-white
-              ">
-
-                {attendance.checkOutUrl ? (
-                  <img
-                    src={
-                      attendance.checkOutUrl
-                    }
-                    alt="Check-out selfie"
-                    className="
-                      h-full
-                      w-full
-                      object-cover
-                    "
-                  />
-                ) : (
-                  <LogOut
-                    size={19}
-                    className="text-slate-400"
-                  />
-                )}
-
-              </div>
-
-              <div>
-
-                <p className="
-                  text-xs
-                  font-medium
-                  text-slate-500
-                ">
-                  Check-out Selfie
-                </p>
-
-                <p className="
-                  mt-0.5
-                  text-sm
-                  text-slate-700
-                ">
-                  {attendance.checkOutSelfiePath
-                    ? "Captured"
-                    : attendance.checkOutTime
-                      ? "Not captured (manual correction)"
-                      : "Pending check-out"}
-                </p>
-
-              </div>
-
-            </div>
-
-          </Card>
+          <AttendanceSelfieCard
+            attendance={attendance}
+          />
 
           {/* Record information */}
 

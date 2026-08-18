@@ -44,3 +44,7 @@ export interface RestoredSession {
   session: AuthSession;
   user: AuthUser;
 }
+
+export interface RefreshTokenResponseDto {
+  access_token: string;
+}

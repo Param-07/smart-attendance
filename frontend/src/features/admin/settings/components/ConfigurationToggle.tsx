@@ -33,11 +33,11 @@ export default function ConfigurationToggle({
         className={[
           "relative inline-flex h-6 w-12 shrink-0 rounded-full",
           "border transition-colors duration-300 ease-in-out",
-          "focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-opacity-40",
-          disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+          "focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-opacity-50",
+          disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer",
           checked
-            ? "bg-[#68D391] border-[#68D391]"
-            : "bg-surface-container-highest border-outline-variant",
+            ? "bg-[#09933e] border-[#3ade79]"
+            : "bg-gray-300 border-gray-400",
         ].join(" ")}
       >
         <span
