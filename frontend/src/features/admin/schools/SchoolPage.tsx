@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import PageHeader from "@/shared/components/PageHeader";
 import Button from "@/shared/components/Button";
+import Card from "@/shared/components/Card";
 
 import {
   getMySchool,
@@ -236,25 +237,15 @@ export default function SchoolPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 space-y-6">
         <PageHeader
           title="School"
           description="Manage your school's profile, contact information, address, and branding."
         />
 
-        <div className="
-          rounded-2xl
-          border
-          border-border
-          bg-surface
-          p-8
-          text-sm
-          text-slate-500
-        ">
+        <Card className="border-outline-variant bg-surface-container-lowest text-sm text-on-surface-variant shadow-sm">
           Loading school information...
-        </div>
-
+        </Card>
       </div>
     );
   }
@@ -262,42 +253,27 @@ export default function SchoolPage() {
 
   if (!school || !form) {
     return (
-      <div className="space-y-6">
-
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 space-y-6">
         <PageHeader
           title="School"
           description="Manage your school's profile, contact information, address, and branding."
         />
 
-        <div className="
-          rounded-2xl
-          border
-          border-red-200
-          bg-red-50
-          p-5
-          text-sm
-          text-red-700
-        ">
+        <Card className="border-error-container bg-error-container bg-opacity-40 text-sm text-on-error-container shadow-sm">
           {error ??
             "School information could not be loaded."}
-        </div>
-
+        </Card>
       </div>
     );
   }
 
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 pb-16">
 
       {/* Header */}
 
-      <div className="
-        flex
-        items-start
-        justify-between
-        gap-6
-      ">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-8">
 
         <PageHeader
           title="School"
@@ -310,14 +286,16 @@ export default function SchoolPage() {
             onClick={handleEdit}
             className="shrink-0"
           >
+            <span
+              className="material-symbols-outlined align-middle mr-1"
+              style={{ fontSize: 18 }}
+            >
+              edit
+            </span>
             Edit School
           </Button>
         ) : (
-          <div className="
-            flex
-            shrink-0
-            gap-3
-          ">
+          <div className="flex shrink-0 gap-3">
 
             <Button
               type="button"
@@ -333,6 +311,12 @@ export default function SchoolPage() {
               onClick={handleSave}
               disabled={saving}
             >
+              <span
+                className="material-symbols-outlined align-middle mr-1"
+                style={{ fontSize: 18 }}
+              >
+                save
+              </span>
               {saving
                 ? "Saving..."
                 : "Save Changes"}
@@ -347,50 +331,25 @@ export default function SchoolPage() {
       {/* Feedback */}
 
       {error && (
-        <div className="
-          rounded-xl
-          border
-          border-red-200
-          bg-red-50
-          px-4
-          py-3
-          text-sm
-          text-red-700
-        ">
+        <div className="mb-6 rounded-lg border border-error-container bg-error-container bg-opacity-40 px-4 py-3 text-sm text-on-error-container">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="
-          rounded-xl
-          border
-          border-emerald-200
-          bg-emerald-50
-          px-4
-          py-3
-          text-sm
-          text-emerald-700
-        ">
+        <div className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
           {success}
         </div>
       )}
 
 
-      {/* Main Layout */}
+      {/* Main Layout — matches Stitch's xl:3-col grid */}
 
-      <div className="
-        grid
-        gap-6
-        lg:grid-cols-3
-      ">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-        {/* School Overview */}
+        {/* Left Column: Overview & Branding */}
 
-        <div className="
-          space-y-6
-          lg:col-span-1
-        ">
+        <div className="xl:col-span-1 flex flex-col gap-6">
 
           <SchoolOverview
             school={school}
@@ -399,12 +358,9 @@ export default function SchoolPage() {
         </div>
 
 
-        {/* School Information */}
+        {/* Right Column: Information & Address */}
 
-        <div className="
-          space-y-6
-          lg:col-span-2
-        ">
+        <div className="xl:col-span-2 flex flex-col gap-6">
 
           <SchoolInformation
             school={school}
