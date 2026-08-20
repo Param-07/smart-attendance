@@ -116,6 +116,7 @@ class TeacherAttendanceController:
     def get_my_attendance_list(self):
 
         account_public_uuid = get_jwt_identity()
+        print(account_public_uuid)
 
         payload = self.list_request_schema.load(
             request.args

@@ -49,8 +49,6 @@ class AttendanceCheckOutRequestSchema(Schema):
 
 class AttendanceListRequestSchema(Schema):
 
-    teacher_public_uuid = fields.UUID(load_default=None)
-
     search = fields.String(load_default=None)
 
     status = fields.Enum(
