@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Bell, Menu } from "lucide-react";
 
 import {
   getRecentAttendance,
@@ -45,28 +44,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Mobile App Header */}
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white">
-        <div className="flex h-14 items-center justify-between px-4">
-          <button
-            type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600"
-          >
-            <Menu size={21} />
-          </button>
-
-          <span className="text-base font-semibold text-slate-900">
-            Smart Attendance
-          </span>
-
-          <button
-            type="button"
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-slate-600"
-          >
-            <Bell size={20} />
-          </button>
-        </div>
-      </header>
 
       <main className="mx-auto w-full max-w-2xl space-y-5 px-4 pb-24 pt-5">
         {/* Welcome */}
