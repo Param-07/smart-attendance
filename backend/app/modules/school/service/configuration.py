@@ -55,11 +55,6 @@ class SchoolConfigurationService:
             school_public_uuid= school.public_uuid
         )
 
-        self._authorize_school_access(
-            configuration.school_id,
-            current_user,
-        )
-
         for field, value in data.items():
 
             setattr(

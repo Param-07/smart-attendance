@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import type {
   Attendance,
 } from "../Attendance.types";
@@ -5,6 +7,8 @@ import type {
 import type {
   SchoolConfigurationResponseDto,
 } from "../api/configuration.api.types";
+
+import CheckInFlow from "../attendance-flow/CheckInFlow";
 
 interface AttendanceActionProps {
   state:
@@ -29,9 +33,27 @@ export default function AttendanceAction({
   configuration,
   attendance,
 }: AttendanceActionProps) {
+  const [showCheckIn, setShowCheckIn] =
+    useState(false);
+
+  if (showCheckIn && configuration) {
+    return (
+      <CheckInFlow
+        configuration={configuration}
+        attendance={attendance}
+        onCancel={() =>
+          setShowCheckIn(false)
+        }
+        onSuccess={() =>
+          setShowCheckIn(false)
+        }
+      />
+    );
+  }
+
   if (state === "ATTENDANCE_COMPLETE") {
     return (
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="text-center">
           <p className="text-sm font-medium text-slate-500">
             You're all set
@@ -58,6 +80,9 @@ export default function AttendanceAction({
       <button
         type="button"
         disabled={!canCheckIn}
+        onClick={() =>
+          setShowCheckIn(true)
+        }
         className="
           w-full
           rounded-2xl
@@ -90,42 +115,28 @@ export default function AttendanceAction({
     }
 
     return (
-      <div className="space-y-3">
-        <button
-          type="button"
-          disabled={!canCheckOut}
-          className="
-            w-full
-            rounded-2xl
-            bg-slate-900
-            px-5
-            py-4
-            text-base
-            font-semibold
-            text-white
-            shadow-sm
-            transition
-            hover:bg-slate-800
-            active:scale-[0.99]
-            disabled:cursor-not-allowed
-            disabled:bg-slate-300
-          "
-        >
-          Check Out
-        </button>
-
-        {attendance?.checkInTime && (
-          <p className="text-center text-xs text-slate-500">
-            Checked in at{" "}
-            {new Date(
-              attendance.checkInTime,
-            ).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-        )}
-      </div>
+      <button
+        type="button"
+        disabled={!canCheckOut}
+        className="
+          w-full
+          rounded-2xl
+          bg-slate-900
+          px-5
+          py-4
+          text-base
+          font-semibold
+          text-white
+          shadow-sm
+          transition
+          hover:bg-slate-800
+          active:scale-[0.99]
+          disabled:cursor-not-allowed
+          disabled:bg-slate-300
+        "
+      >
+        Check Out
+      </button>
     );
   }
 
