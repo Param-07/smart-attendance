@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 
 import {
-  getRecentAttendance,
-  getTodayAttendance,
-} from "./api/dashboard.api";
+  getAttendanceList,
+} from "../attendance/api/attendance.api";
 
 import {
   RecentAttendance,
@@ -12,70 +11,80 @@ import {
 
 import type { DashboardData } from "./Dashboard.types";
 
-export default function Dashboard() {
+import { useTodayAttendance } from "../attendance/hooks/useTodayAttendance";
+
+export default function DashboardPage() {
   const [data, setData] = useState<DashboardData>({
-    todayAttendance: null,
     recentAttendance: [],
-    teacher: null,
   });
 
-  const [loading, setLoading] = useState(true);
+  const [recentLoading, setRecentLoading] =
+    useState(true);
+
+  const {
+    data: todayData,
+    isLoading: todayLoading,
+  } = useTodayAttendance();
 
   useEffect(() => {
-    const loadDashboard = async () => {
+    const loadRecentAttendance = async () => {
       try {
-        const [today, recent] = await Promise.all([
-          getTodayAttendance(),
-          getRecentAttendance(1, 3),
-        ]);
+        const recent =
+          await getAttendanceList(1, 3);
 
         setData({
-          todayAttendance: today.attendance,
-          teacher: today.teacher,
           recentAttendance: recent,
         });
       } finally {
-        setLoading(false);
+        setRecentLoading(false);
       }
     };
 
-    loadDashboard();
+    loadRecentAttendance();
   }, []);
+
+  const teacher =
+    todayData?.teacher ?? null;
+
+  const todayAttendance =
+    todayData?.attendance ?? null;
 
   return (
     <div className="min-h-screen bg-slate-50">
-
       <main className="mx-auto w-full max-w-2xl space-y-5 px-4 pb-24 pt-5">
-        {/* Welcome */}
+
         <section>
           <p className="text-sm font-medium text-slate-500">
             Good morning
           </p>
 
           <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            {data.teacher?.displayName || "Teacher"} 👋
+            {teacher?.displayName || "Teacher"} 👋
           </h1>
 
-          {data.teacher && (
+          {teacher && (
             <p className="mt-1 text-sm text-slate-500">
-              {data.teacher.designation}
-              <span className="mx-1.5">·</span>
-              {data.teacher.employeeCode}
+              {teacher.designation}
+
+              <span className="mx-1.5">
+                ·
+              </span>
+
+              {teacher.employeeCode}
             </p>
           )}
         </section>
 
-        {/* Today's Attendance */}
         <TodayAttendanceCard
-          attendance={data.todayAttendance}
-          loading={loading}
+          attendance={todayAttendance}
+          loading={todayLoading}
         />
 
-        {/* Recent Attendance */}
         <RecentAttendance
           attendance={data.recentAttendance}
-          loading={loading}
+          loading={recentLoading}
         />
+
       </main>
     </div>
   );

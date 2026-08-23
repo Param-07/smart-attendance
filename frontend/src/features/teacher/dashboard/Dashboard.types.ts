@@ -1,13 +1,10 @@
 import type {
-  AttendanceResponseDto,
-} from "./api/dashboard.api.types";
+  Attendance,
+} from "../attendance/Attendance.types";
 
-
-export type DashboardAttendanceState =
-  | "NOT_CHECKED_IN"
-  | "CHECKED_IN"
-  | "ATTENDANCE_COMPLETE";
-
+export interface DashboardData {
+  recentAttendance: Attendance[];
+}
 
 export interface DashboardAttendance {
   id: string;
@@ -33,51 +30,7 @@ export interface DashboardAttendance {
   remarks: string | null;
 }
 
-
-export interface DashboardData {
-  todayAttendance: DashboardAttendance | null;
-
-  recentAttendance: DashboardAttendance[];
-
-  teacher: DashboardTeacher | null;
-}
-
-
-export interface DashboardTeacher {
-  id: string;
-
-  displayName: string;
-
-  employeeCode: string;
-
-  designation: string;
-
-  department: string;
-
-  faceRegistered: boolean;
-}
-
-
-export interface DashboardState {
-  data: DashboardData;
-
-  loading: boolean;
-
-  error: string | null;
-}
-
-
-export function mapAttendanceState(
-  attendance: AttendanceResponseDto | null,
-): DashboardAttendanceState {
-
-  if (!attendance) {
-    return "NOT_CHECKED_IN";
-  }
-
-  if (attendance.status === "OPEN") {
-    return "CHECKED_IN";
-  }
-
-  return "ATTENDANCE_COMPLETE";
-}
+export type DashboardAttendanceState =
+  | "NOT_CHECKED_IN"
+  | "CHECKED_IN"
+  | "ATTENDANCE_COMPLETE";

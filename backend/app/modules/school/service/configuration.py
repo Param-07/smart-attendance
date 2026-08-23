@@ -34,10 +34,8 @@ class SchoolConfigurationService:
             school_public_uuid= school.public_uuid
         )
 
-        self._authorize_school_access(
-            configuration.school_id,
-            current_user,
-        )
+        if configuration is None:
+            raise ConfigurationNotFoundException()
 
         return configuration
 
@@ -73,28 +71,6 @@ class SchoolConfigurationService:
         self.configuration_repository.commit()
 
         return configuration
-
-    def _authorize_school_access(
-        self,
-        school_id: int,
-        current_user: Account,
-    ) -> None:
-
-        if current_user.role == UserRole.SUPER_ADMIN:
-            return
-
-        if current_user.role == UserRole.SCHOOL_ADMIN:
-
-            if current_user.school_id != school_id:
-                raise ForbiddenException(
-                    "You do not have access to this school's configuration."
-                )
-
-            return
-
-        raise ForbiddenException(
-            "You do not have permission to access school configuration."
-        )
 
     def _get_configuration(
         self,

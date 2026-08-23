@@ -1,16 +1,14 @@
 import apiClient from "@/shared/api/apiClient";
-
 import type { ApiResponse } from "@/shared/api/apiTypes";
 
 import type {
+  AttendanceCheckInPayload,
+  AttendanceCheckOutPayload,
   AttendanceListResponseDto,
   AttendanceResponseDto,
-} from "./dashboard.api.types";
+} from "./attendance.api.types";
 
-import type {
-  DashboardAttendance,
-  DashboardTeacher,
-} from "../Dashboard.types";
+import type { Attendance } from "../Attendance.types";
 
 
 // Enum Helpers
@@ -28,7 +26,7 @@ function cleanEnumValue(
 
 function mapAttendance(
   payload: AttendanceResponseDto,
-): DashboardAttendance {
+): Attendance {
   const status =
     cleanEnumValue(payload.status);
 
@@ -56,23 +54,37 @@ function mapAttendance(
     checkInLongitude:
       payload.check_in_longitude,
 
+    checkInAccuracy:
+      payload.check_in_accuracy,
+
     checkOutLatitude:
       payload.check_out_latitude,
 
     checkOutLongitude:
       payload.check_out_longitude,
 
+    checkOutAccuracy:
+      payload.check_out_accuracy,
+
+    checkInFaceMatchScore:
+      payload.check_in_face_match_score,
+
+    checkInSelfiePath:
+      payload.check_in_selfie_path,
+
+    checkOutSelfiePath:
+      payload.check_out_selfie_path,
+
     remarks:
       payload.remarks,
   };
 }
 
-
 // Teacher Mapper
 
 function mapTeacher(
   payload: AttendanceResponseDto["teacher"],
-): DashboardTeacher {
+) {
   return {
     id: payload.public_uuid,
 
@@ -100,12 +112,7 @@ function mapTeacher(
 
 // Get Today's Attendance
 
-export async function getTodayAttendance(): Promise<{
-  attendance: DashboardAttendance | null;
-
-  teacher: DashboardTeacher | null;
-}> {
-
+export async function getTodayAttendance() {
   try {
     const response =
       await apiClient.get<
@@ -127,16 +134,7 @@ export async function getTodayAttendance(): Promise<{
 
   } catch (error: any) {
 
-    /*
-     * The backend currently raises
-     * AttendanceNotFoundException when
-     * the teacher has no attendance today.
-     *
-     * Treat that as a valid dashboard state.
-     *
-     * Do not swallow other errors.
-     */
-
+    // No attendance for today
     if (
       error?.response?.status === 404
     ) {
@@ -151,13 +149,12 @@ export async function getTodayAttendance(): Promise<{
 }
 
 
-// Get Recent Attendance
+// Get Attendance List
 
-export async function getRecentAttendance(
+export async function getAttendanceList(
   page = 1,
   pageSize = 5,
-): Promise<DashboardAttendance[]> {
-
+) {
   const response =
     await apiClient.get<
       ApiResponse<AttendanceListResponseDto>
@@ -171,10 +168,109 @@ export async function getRecentAttendance(
       },
     );
 
-  const data =
-    response.data.data;
-
-  return data.items.map(
+  return response.data.data.items.map(
     mapAttendance,
+  );
+}
+
+
+// Check In
+
+export async function checkIn(
+  payload: AttendanceCheckInPayload,
+  selfie?: File | null,
+) {
+  const formData =
+    new FormData();
+
+  if (payload.latitude != null) {
+    formData.append(
+      "latitude",
+      payload.latitude,
+    );
+  }
+
+  if (payload.longitude != null) {
+    formData.append(
+      "longitude",
+      payload.longitude,
+    );
+  }
+
+  if (payload.accuracy != null) {
+    formData.append(
+      "accuracy",
+      payload.accuracy,
+    );
+  }
+
+  if (selfie) {
+    formData.append(
+      "selfie",
+      selfie,
+    );
+  }
+
+  const response =
+    await apiClient.post<
+      ApiResponse<AttendanceResponseDto>
+    >(
+      "/attendance/check-in",
+      formData,
+    );
+
+  return mapAttendance(
+    response.data.data,
+  );
+}
+
+
+// Check Out
+
+export async function checkOut(
+  payload: AttendanceCheckOutPayload,
+  selfie?: File | null,
+) {
+  const formData =
+    new FormData();
+
+  if (payload.latitude != null) {
+    formData.append(
+      "latitude",
+      payload.latitude,
+    );
+  }
+
+  if (payload.longitude != null) {
+    formData.append(
+      "longitude",
+      payload.longitude,
+    );
+  }
+
+  if (payload.accuracy != null) {
+    formData.append(
+      "accuracy",
+      payload.accuracy,
+    );
+  }
+
+  if (selfie) {
+    formData.append(
+      "selfie",
+      selfie,
+    );
+  }
+
+  const response =
+    await apiClient.post<
+      ApiResponse<AttendanceResponseDto>
+    >(
+      "/attendance/check-out",
+      formData,
+    );
+
+  return mapAttendance(
+    response.data.data,
   );
 }

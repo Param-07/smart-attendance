@@ -36,10 +36,6 @@ class SchoolConfigurationController:
         )
 
     @auth_required
-    @roles_required(
-        UserRole.SUPER_ADMIN,
-        UserRole.SCHOOL_ADMIN,
-    )
     def get_configuration(
         self
     ):

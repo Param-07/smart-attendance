@@ -87,3 +87,15 @@ export interface AttendanceListResponseDto {
 
   has_previous: boolean;
 }
+
+export interface AttendanceLocationPayload {
+  latitude?: string | null;
+  longitude?: string | null;
+  accuracy?: string | null;
+}
+
+export interface AttendanceCheckInPayload
+  extends AttendanceLocationPayload {}
+
+export interface AttendanceCheckOutPayload
+  extends AttendanceLocationPayload {}
