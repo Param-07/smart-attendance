@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import apiClient from "@/shared/api/apiClient";
 import type { ApiResponse } from "@/shared/api/apiTypes";
 
@@ -8,10 +10,17 @@ import type {
   AttendanceResponseDto,
 } from "./attendance.api.types";
 
+import {
+  AttendanceApiError,
+  type AttendanceErrorCode,
+} from "./attendance.api.errors";
+
 import type { Attendance } from "../Attendance.types";
 
 
+// ============================================================
 // Enum Helpers
+// ============================================================
 
 function cleanEnumValue(
   value: string,
@@ -22,7 +31,9 @@ function cleanEnumValue(
 }
 
 
+// ============================================================
 // Attendance Mapper
+// ============================================================
 
 function mapAttendance(
   payload: AttendanceResponseDto,
@@ -80,7 +91,10 @@ function mapAttendance(
   };
 }
 
+
+// ============================================================
 // Teacher Mapper
+// ============================================================
 
 function mapTeacher(
   payload: AttendanceResponseDto["teacher"],
@@ -110,7 +124,84 @@ function mapTeacher(
 }
 
 
+// ============================================================
+// Attendance Error Helpers
+// ============================================================
+
+function isAttendanceErrorCode(
+  code?: string,
+): code is AttendanceErrorCode {
+  return [
+    "LIVENESS_FAILED",
+    "FACE_MATCH_FAILED",
+    "FACE_NOT_REGISTERED",
+    "GPS_OUTSIDE_RADIUS",
+    "GPS_ACCURACY_LOW",
+    "CHECK_IN_NOT_ALLOWED",
+    "ALREADY_CHECKED_IN",
+    "CHECK_OUT_NOT_ALLOWED",
+    "ALREADY_CHECKED_OUT",
+    "NOT_FOUND",
+    "VALIDATION_ERROR",
+  ].includes(
+    code as AttendanceErrorCode,
+  );
+}
+
+
+function normalizeAttendanceError(
+  error: unknown,
+): AttendanceApiError {
+
+  if (!axios.isAxiosError(error)) {
+    return new AttendanceApiError(
+      "UNKNOWN_ERROR",
+      "Unable to process attendance.",
+    );
+  }
+
+  const status =
+    error.response?.status;
+
+  const responseData =
+    error.response?.data as
+      | {
+          message?: string;
+
+          errors?: {
+            code?: string;
+          } | null;
+        }
+      | undefined;
+
+  const code =
+    responseData?.errors?.code;
+
+  const message =
+    responseData?.message ??
+    "Unable to process attendance.";
+
+  if (
+    isAttendanceErrorCode(code)
+  ) {
+    return new AttendanceApiError(
+      code,
+      message,
+      status,
+    );
+  }
+
+  return new AttendanceApiError(
+    "UNKNOWN_ERROR",
+    message,
+    status,
+  );
+}
+
+
+// ============================================================
 // Get Today's Attendance
+// ============================================================
 
 export async function getTodayAttendance() {
   try {
@@ -134,7 +225,11 @@ export async function getTodayAttendance() {
 
   } catch (error: any) {
 
-    // No attendance for today
+    /*
+     * No attendance for today is a valid
+     * dashboard state.
+     */
+
     if (
       error?.response?.status === 404
     ) {
@@ -149,7 +244,9 @@ export async function getTodayAttendance() {
 }
 
 
+// ============================================================
 // Get Attendance List
+// ============================================================
 
 export async function getAttendanceList(
   page = 1,
@@ -174,7 +271,9 @@ export async function getAttendanceList(
 }
 
 
+// ============================================================
 // Check In
+// ============================================================
 
 export async function checkIn(
   payload: AttendanceCheckInPayload,
@@ -211,21 +310,30 @@ export async function checkIn(
     );
   }
 
-  const response =
-    await apiClient.post<
-      ApiResponse<AttendanceResponseDto>
-    >(
-      "/attendance/check-in",
-      formData,
+  try {
+    const response =
+      await apiClient.post<
+        ApiResponse<AttendanceResponseDto>
+      >(
+        "/attendance/check-in",
+        formData,
+      );
+
+    return mapAttendance(
+      response.data.data,
     );
 
-  return mapAttendance(
-    response.data.data,
-  );
+  } catch (error) {
+    throw normalizeAttendanceError(
+      error,
+    );
+  }
 }
 
 
+// ============================================================
 // Check Out
+// ============================================================
 
 export async function checkOut(
   payload: AttendanceCheckOutPayload,
@@ -262,15 +370,22 @@ export async function checkOut(
     );
   }
 
-  const response =
-    await apiClient.post<
-      ApiResponse<AttendanceResponseDto>
-    >(
-      "/attendance/check-out",
-      formData,
+  try {
+    const response =
+      await apiClient.post<
+        ApiResponse<AttendanceResponseDto>
+      >(
+        "/attendance/check-out",
+        formData,
+      );
+
+    return mapAttendance(
+      response.data.data,
     );
 
-  return mapAttendance(
-    response.data.data,
-  );
+  } catch (error) {
+    throw normalizeAttendanceError(
+      error,
+    );
+  }
 }

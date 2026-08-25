@@ -137,7 +137,7 @@ export default function CheckInFlow({
             {CheckInMutation.isError && (
                 <div className="rounded-xl bg-red-50 p-3">
                     <p className="text-sm text-red-600">
-                        Unable to check in. Please try again.
+                        {CheckInMutation.error.message} Please mark your attendance again.
                     </p>
                 </div>
             )}

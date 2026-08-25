@@ -103,7 +103,7 @@ export default function LocationCapture({
                         transition
                         hover:bg-slate-800
                         disabled:cursor-not-allowed
-                        disable:opacity-50
+                        disabled:opacity-50
                     ">
                         {loading
                         ?"Getting Location"

@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 
 import type { TodayAttendanceCardProps } from "./TodayAttendanceCard.types";
+import { useNavigate } from "react-router-dom";
 
 function formatTime(value: string | null) {
   if (!value) return "--";
@@ -43,6 +44,8 @@ export default function TodayAttendanceCard({
   attendance,
   loading,
 }: TodayAttendanceCardProps) {
+  const navigate = useNavigate();
+  
   if (loading) {
     return (
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -86,6 +89,7 @@ export default function TodayAttendanceCard({
 
           <button
             type="button"
+            onClick={() => navigate("/teacher/attendance")}
             className="
               mt-6
               flex
