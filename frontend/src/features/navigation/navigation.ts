@@ -56,6 +56,11 @@ export const teacherNavigation: NavigationItem[] = [
     path: "/teacher/attendance",
     icon: CalendarCheck,
   },
+  {
+    label: "Profile",
+    path: "/teacher/face-registeration",
+    icon: Users,
+  }
 ];
 
 export const teacherBottomNavigation: NavigationItem[] = [

@@ -78,7 +78,7 @@ class GPSValidationServce:
         distance: float,
         allowed_radius: int,
     ) -> None:
-
+        print(f"Distance: {distance}, Allowed Radius: {allowed_radius}")
         if distance > allowed_radius:
             raise GPSOutsideAllowedRadiusException()
 
@@ -91,6 +91,8 @@ class GPSValidationServce:
         school_longitude: Decimal,
     ) -> float:
 
+        print(f"User Latitude: {user_latitude}, User Longitude: {user_longitude}")
+        print(f"School Latitude: {school_latitude}, School Longitude: {school_longitude}")
         lat1 = radians(float(user_latitude))
         lon1 = radians(float(user_longitude))
 

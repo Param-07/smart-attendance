@@ -17,11 +17,6 @@ import {
 
 import type { Attendance } from "../Attendance.types";
 
-
-// ============================================================
-// Enum Helpers
-// ============================================================
-
 function cleanEnumValue(
   value: string,
 ): string {
@@ -29,11 +24,6 @@ function cleanEnumValue(
     ? value.split(".").pop() ?? value
     : value;
 }
-
-
-// ============================================================
-// Attendance Mapper
-// ============================================================
 
 function mapAttendance(
   payload: AttendanceResponseDto,
@@ -91,11 +81,6 @@ function mapAttendance(
   };
 }
 
-
-// ============================================================
-// Teacher Mapper
-// ============================================================
-
 function mapTeacher(
   payload: AttendanceResponseDto["teacher"],
 ) {
@@ -122,11 +107,6 @@ function mapTeacher(
       payload.face_registered,
   };
 }
-
-
-// ============================================================
-// Attendance Error Helpers
-// ============================================================
 
 function isAttendanceErrorCode(
   code?: string,
@@ -198,11 +178,6 @@ function normalizeAttendanceError(
   );
 }
 
-
-// ============================================================
-// Get Today's Attendance
-// ============================================================
-
 export async function getTodayAttendance() {
   try {
     const response =
@@ -243,11 +218,6 @@ export async function getTodayAttendance() {
   }
 }
 
-
-// ============================================================
-// Get Attendance List
-// ============================================================
-
 export async function getAttendanceList(
   page = 1,
   pageSize = 5,
@@ -269,11 +239,6 @@ export async function getAttendanceList(
     mapAttendance,
   );
 }
-
-
-// ============================================================
-// Check In
-// ============================================================
 
 export async function checkIn(
   payload: AttendanceCheckInPayload,
@@ -329,11 +294,6 @@ export async function checkIn(
     );
   }
 }
-
-
-// ============================================================
-// Check Out
-// ============================================================
 
 export async function checkOut(
   payload: AttendanceCheckOutPayload,

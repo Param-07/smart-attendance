@@ -1,4 +1,5 @@
 from flask import request
+from flask_jwt_extended import get_jwt_identity
 
 from app.core.responses import ApiResponse
 from app.core.exceptions import BadRequestException
@@ -12,6 +13,7 @@ from app.modules.authentication.decorators import (
     roles_required,
 )
 from app.modules.authentication.service import AuthService
+from app.services.storage.selfie_storage_service import StorageService
 
 
 class TeacherFaceController:
@@ -20,6 +22,7 @@ class TeacherFaceController:
 
         self.service = TeacherFaceService()
         self.auth_service = AuthService()
+        self.storage_service = StorageService()
 
         self.response_schema = TeacherFaceResponseSchema()
 
@@ -27,9 +30,11 @@ class TeacherFaceController:
     @roles_required(
         UserRole.SUPER_ADMIN,
         UserRole.SCHOOL_ADMIN,
+        UserRole.TEACHER,
     )
-    def register_face(self, teacher_public_uuid):
+    def register_face(self):
 
+        account_uuid = get_jwt_identity()
         uploaded_file = request.files.get("selfie")
 
         if uploaded_file is None:
@@ -40,14 +45,12 @@ class TeacherFaceController:
         current_user = self.auth_service.get_current_user()
 
         teacher_face = self.service.register_face(
-            teacher_public_uuid,
+            account_uuid,
             uploaded_file,
             current_user,
         )
 
-        response = self.response_schema.dump(
-            teacher_face
-        )
+        response = self._serialize_face(teacher_face)
 
         return ApiResponse.success(
             message="Face registered successfully.",
@@ -58,9 +61,11 @@ class TeacherFaceController:
     @roles_required(
         UserRole.SUPER_ADMIN,
         UserRole.SCHOOL_ADMIN,
+        UserRole.TEACHER,
     )
-    def update_face(self, teacher_public_uuid):
+    def update_face(self):
 
+        account_uuid = get_jwt_identity()
         uploaded_file = request.files.get("selfie")
 
         if uploaded_file is None:
@@ -71,14 +76,12 @@ class TeacherFaceController:
         current_user = self.auth_service.get_current_user()
 
         teacher_face = self.service.replace_face(
-            teacher_public_uuid,
+            account_uuid,
             uploaded_file,
             current_user,
         )
 
-        response = self.response_schema.dump(
-            teacher_face
-        )
+        response = self._serialize_face(teacher_face)
 
         return ApiResponse.success(
             message="Face updated successfully.",
@@ -89,19 +92,19 @@ class TeacherFaceController:
     @roles_required(
         UserRole.SUPER_ADMIN,
         UserRole.SCHOOL_ADMIN,
+        UserRole.TEACHER,
     )
-    def get_face(self, teacher_public_uuid):
+    def get_face(self):
 
+        account_uuid = get_jwt_identity()
         current_user = self.auth_service.get_current_user()
 
         teacher_face = self.service.get_registered_face(
-            teacher_public_uuid,
+            account_uuid,
             current_user,
         )
 
-        response = self.response_schema.dump(
-            teacher_face
-        )
+        response = self._serialize_face(teacher_face)
 
         return ApiResponse.success(
             message="Face retrieved successfully.",
@@ -112,16 +115,34 @@ class TeacherFaceController:
     @roles_required(
         UserRole.SUPER_ADMIN,
         UserRole.SCHOOL_ADMIN,
+        UserRole.TEACHER,
     )
-    def delete_face(self, teacher_public_uuid):
+    def delete_face(self):
 
+        account_uuid = get_jwt_identity()
         current_user = self.auth_service.get_current_user()
 
         self.service.delete_face(
-            teacher_public_uuid,
+            account_uuid,
             current_user,
         )
 
         return ApiResponse.success(
             message="Face deleted successfully."
         )
+
+    def _serialize_face(self, teacher_face):
+
+        response = self.response_schema.dump(teacher_face)
+        image_path = teacher_face.get("image_path")
+    
+        response["image_url"] = (
+            self.storage_service.get_signed_url(
+                "teacher-faces",
+                image_path,
+            )
+            if image_path
+            else None
+        )
+    
+        return response

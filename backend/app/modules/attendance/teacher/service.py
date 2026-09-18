@@ -124,8 +124,6 @@ class TeacherAttendanceService:
             account_public_uuid
         )
 
-        print("teacger")
-
         today = date.today()
 
         if start_date is None:

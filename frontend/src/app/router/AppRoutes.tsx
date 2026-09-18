@@ -25,6 +25,7 @@ import TeacherAttendancePage from "@/features/teacher/attendance/AttendancePage"
 import UnauthorizedPage from "@/features/common/UnauthorizedPage";
 import NotFoundPage from "@/features/common/NotFoundPage";
 import { AttendanceCorrectionDialog } from "@/features/admin/attendance/components";
+import FaceRegistration from "@/features/teacher/face-registration/FaceRegistration";
 
 const router = createBrowserRouter([
   {
@@ -142,6 +143,11 @@ const router = createBrowserRouter([
             path: "attendance",
             element: <TeacherAttendancePage />,
           },
+
+          {
+            path: "face-registeration",
+            element: <FaceRegistration />
+          }
         ],
       },
     ],
