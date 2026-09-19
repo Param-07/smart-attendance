@@ -62,8 +62,17 @@ export default function FaceRegistration() {
     useState<string | null>(null);
 
   /*
-   * Create preview URL for captured selfie.
+   * ==========================================================
+   * CAPTURED IMAGE PREVIEW
+   * ==========================================================
+   *
+   * The captured Blob is displayed directly.
+   *
+   * IMPORTANT:
+   * There is intentionally NO scale-x-[-1] or transform here.
+   * The captured image should appear in its real orientation.
    */
+
   useEffect(() => {
     if (!capturedImage) {
       setPreviewUrl(null);
@@ -80,22 +89,20 @@ export default function FaceRegistration() {
   }, [capturedImage]);
 
   /*
-   * Set the initial page state after checking
-   * whether the teacher already has a registered face.
-   *
-   * Important:
-   * - Existing face => success/registered screen.
-   * - No face => capture screen.
-   *
-   * We do not change mode while an update is
-   * actively in progress.
+   * ==========================================================
+   * INITIAL PAGE STATE
+   * ==========================================================
    */
+
   useEffect(() => {
     if (isFaceLoading) {
       return;
     }
 
-    if (status === "review" || status === "processing") {
+    if (
+      status === "review" ||
+      status === "processing"
+    ) {
       return;
     }
 
@@ -114,8 +121,11 @@ export default function FaceRegistration() {
   ]);
 
   /*
-   * Capture selfie.
+   * ==========================================================
+   * CAPTURE
+   * ==========================================================
    */
+
   const handleCapture = (image: Blob) => {
     setError(null);
     setCapturedImage(image);
@@ -123,8 +133,11 @@ export default function FaceRegistration() {
   };
 
   /*
-   * Camera errors.
+   * ==========================================================
+   * CAMERA ERROR
+   * ==========================================================
    */
+
   const handleCameraError = (
     cameraError: string,
   ) => {
@@ -135,8 +148,11 @@ export default function FaceRegistration() {
   };
 
   /*
-   * Retake selfie.
+   * ==========================================================
+   * RETAKE
+   * ==========================================================
    */
+
   const handleRetake = () => {
     setError(null);
     setCapturedImage(null);
@@ -144,8 +160,11 @@ export default function FaceRegistration() {
   };
 
   /*
-   * Register or update the captured face.
+   * ==========================================================
+   * REGISTER / UPDATE
+   * ==========================================================
    */
+
   const handleContinue = async () => {
     if (!capturedImage) {
       return;
@@ -174,12 +193,11 @@ export default function FaceRegistration() {
   };
 
   /*
-   * Enter update mode.
-   *
-   * registeredFace remains in React Query cache,
-   * but mode explicitly tells the page that the
-   * current operation is an UPDATE.
+   * ==========================================================
+   * UPDATE MODE
+   * ==========================================================
    */
+
   const handleStartUpdate = () => {
     setError(null);
     setCapturedImage(null);
@@ -187,10 +205,6 @@ export default function FaceRegistration() {
     setStatus("capture");
   };
 
-  /*
-   * Cancel update and return to the existing
-   * registered-face screen.
-   */
   const handleCancelUpdate = () => {
     setError(null);
     setCapturedImage(null);
@@ -199,8 +213,11 @@ export default function FaceRegistration() {
   };
 
   /*
-   * Delete registered face.
+   * ==========================================================
+   * DELETE
+   * ==========================================================
    */
+
   const handleDelete = async () => {
     setError(null);
 
@@ -217,18 +234,24 @@ export default function FaceRegistration() {
   };
 
   /*
-   * Return to previous page.
+   * ==========================================================
+   * NAVIGATION
+   * ==========================================================
    */
+
   const handleBack = () => {
     navigate(-1);
   };
 
-  /*
-   * Retry registration lookup.
-   */
   const handleRetryLoading = () => {
     refetchFace();
   };
+
+  /*
+   * ==========================================================
+   * ERROR MESSAGES
+   * ==========================================================
+   */
 
   const errorMessages: Record<
     FaceRegistrationError,
@@ -270,12 +293,74 @@ export default function FaceRegistration() {
 
   /*
    * ==========================================================
+   * BREADCRUMB
+   * ==========================================================
+   */
+
+  const renderBreadcrumb = () => (
+    <div className="mb-3">
+      <button
+        type="button"
+        onClick={
+          mode === "update"
+            ? handleCancelUpdate
+            : handleBack
+        }
+        className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-900"
+      >
+        <ArrowLeft
+          className="h-4 w-4"
+          aria-hidden="true"
+        />
+
+        <span>Dashboard</span>
+
+        <span
+          className="text-slate-300"
+          aria-hidden="true"
+        >
+          /
+        </span>
+
+        <span
+          className={
+            mode === "update"
+              ? "text-slate-500"
+              : "text-slate-700"
+          }
+        >
+          Face Registration
+        </span>
+
+        {mode === "update" && (
+          <>
+            <span
+              className="text-slate-300"
+              aria-hidden="true"
+            >
+              /
+            </span>
+
+            <span className="text-slate-700">
+              Update
+            </span>
+          </>
+        )}
+      </button>
+    </div>
+  );
+
+  /*
+   * ==========================================================
    * INITIAL LOADING
    * ==========================================================
    */
+
   if (isFaceLoading) {
     return (
       <div className="space-y-6">
+        {renderBreadcrumb()}
+
         <PageHeader
           title="Face Registration"
           description="Register your face for secure attendance verification."
@@ -308,9 +393,12 @@ export default function FaceRegistration() {
    * INITIAL QUERY ERROR
    * ==========================================================
    */
+
   if (isFaceError) {
     return (
       <div className="space-y-6">
+        {renderBreadcrumb()}
+
         <PageHeader
           title="Face Registration"
           description="Register your face for secure attendance verification."
@@ -331,8 +419,8 @@ export default function FaceRegistration() {
               </h2>
 
               <p className="mt-2 max-w-sm text-sm text-slate-500">
-                We could not determine your current face
-                registration status.
+                We could not determine your current
+                face registration status.
               </p>
             </div>
 
@@ -353,9 +441,12 @@ export default function FaceRegistration() {
    * ERROR STATE
    * ==========================================================
    */
+
   if (status === "error" && error) {
     return (
       <div className="space-y-6">
+        {renderBreadcrumb()}
+
         <PageHeader
           title={
             mode === "update"
@@ -415,9 +506,12 @@ export default function FaceRegistration() {
    * PROCESSING STATE
    * ==========================================================
    */
+
   if (status === "processing") {
     return (
       <div className="space-y-6">
+        {renderBreadcrumb()}
+
         <PageHeader
           title={
             mode === "update"
@@ -442,143 +536,152 @@ export default function FaceRegistration() {
    * ==========================================================
    * REGISTERED FACE / SUCCESS STATE
    * ==========================================================
-   *
-   * This state is shown only when a face exists.
-   *
-   * There is intentionally NO "Register Face" button here.
    */
-  console.log("Registered face:", registeredFace?.image_url);
+
   if (
     status === "success" &&
     registeredFace
   ) {
     return (
       <div className="space-y-6">
+        {renderBreadcrumb()}
+
         <PageHeader
           title="Face Registration"
           description="Your registered face is used for attendance verification."
         />
 
         <Card>
-          <div className="px-4 py-6 sm:px-6">
-            <div className="flex flex-col items-center text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
-                <CheckCircle2
-                  className="h-8 w-8 text-emerald-600"
-                  aria-hidden="true"
-                />
-              </div>
+          <div className="p-4 sm:p-6 lg:p-8">
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+              {/* REGISTERED IMAGE */}
 
-              <h2 className="mt-5 text-xl font-semibold text-slate-900">
-                Face registered
-              </h2>
+              <div className="order-1">
+                <div className="mx-auto max-w-lg">
+                  <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-100 shadow-sm">
+                    <div className="aspect-square w-full">
+                      <img
+                        src={registeredFace.image_url}
+                        alt="Your registered face"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
 
-              <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
-                Your face is registered and ready for
-                attendance verification.
-              </p>
+                    <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-3 py-2 shadow-sm backdrop-blur">
+                      <CheckCircle2
+                        className="h-4 w-4 text-emerald-600"
+                        aria-hidden="true"
+                      />
 
-              <div className="mt-6 w-full max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-                <div className="aspect-square w-full">
-                  <img
-                    src={registeredFace.image_url}
-                    alt="Your registered face"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
+                      <span className="text-xs font-medium text-slate-700">
+                        Verified
+                      </span>
+                    </div>
+                  </div>
 
-                <div className="flex items-center gap-3 border-t border-slate-200 bg-white px-4 py-3 text-left">
-                  <ImageIcon
-                    className="h-5 w-5 shrink-0 text-slate-500"
-                    aria-hidden="true"
-                  />
+                  <div className="mt-3 flex items-center gap-3 px-1">
+                    <ImageIcon
+                      className="h-5 w-5 shrink-0 text-slate-500"
+                      aria-hidden="true"
+                    />
 
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-900">
-                      Registered selfie
-                    </p>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-900">
+                        Registered selfie
+                      </p>
 
-                    <p className="text-xs text-slate-500">
-                      Face verification ready
-                    </p>
+                      <p className="text-xs text-slate-500">
+                        Face verification ready
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 flex w-full max-w-sm flex-col gap-3">
-                <Button
-                  type="button"
-                  onClick={handleStartUpdate}
-                >
-                  <RefreshCw
-                    className="mr-2 h-4 w-4"
+              {/* INFORMATION */}
+
+              <div className="order-2 lg:px-2">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50">
+                  <CheckCircle2
+                    className="h-6 w-6 text-emerald-600"
                     aria-hidden="true"
                   />
-                  Update Face
-                </Button>
+                </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? (
-                    <>
-                      <Loader2
-                        className="mr-2 h-4 w-4 animate-spin"
-                        aria-hidden="true"
-                      />
-                      Removing...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2
-                        className="mr-2 h-4 w-4"
-                        aria-hidden="true"
-                      />
-                      Delete Face
-                    </>
-                  )}
-                </Button>
+                <h2 className="mt-5 text-2xl font-semibold tracking-tight text-slate-900">
+                  Face registered
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Your face is registered and ready
+                  for attendance verification.
+                </p>
+
+                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                  <div className="flex items-start gap-3">
+                    <LockKeyhole
+                      className="mt-0.5 h-5 w-5 shrink-0 text-slate-500"
+                      aria-hidden="true"
+                    />
+
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">
+                        Your face data is protected
+                      </p>
+
+                      <p className="mt-1 text-xs leading-5 text-slate-500">
+                        Your registered selfie is securely
+                        stored and used only for attendance
+                        verification.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex flex-col gap-3">
+                  <Button
+                    type="button"
+                    onClick={handleStartUpdate}
+                  >
+                    <RefreshCw
+                      className="mr-2 h-4 w-4"
+                      aria-hidden="true"
+                    />
+
+                    Update Face
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2
+                          className="mr-2 h-4 w-4 animate-spin"
+                          aria-hidden="true"
+                        />
+
+                        Removing...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2
+                          className="mr-2 h-4 w-4"
+                          aria-hidden="true"
+                        />
+
+                        Delete Face
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </Card>
-
-        <Card>
-          <div className="flex items-start gap-3 px-4 py-4 sm:px-6">
-            <LockKeyhole
-              className="mt-0.5 h-5 w-5 shrink-0 text-slate-500"
-              aria-hidden="true"
-            />
-
-            <div>
-              <p className="text-sm font-medium text-slate-900">
-                Your face data is protected
-              </p>
-
-              <p className="mt-1 text-xs leading-5 text-slate-500">
-                Your registered selfie is securely stored and
-                used only for attendance verification.
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <div className="flex justify-start">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleBack}
-          >
-            <ArrowLeft
-              className="mr-2 h-4 w-4"
-              aria-hidden="true"
-            />
-            Back
-          </Button>
-        </div>
       </div>
     );
   }
@@ -588,6 +691,7 @@ export default function FaceRegistration() {
    * CAPTURE / REVIEW
    * ==========================================================
    */
+
   const isReviewing =
     status === "review" &&
     Boolean(
@@ -597,6 +701,8 @@ export default function FaceRegistration() {
 
   return (
     <div className="space-y-6">
+      {renderBreadcrumb()}
+
       <PageHeader
         title={
           mode === "update"
@@ -624,9 +730,9 @@ export default function FaceRegistration() {
               </p>
 
               <p className="mt-1 text-xs leading-5 text-blue-700">
-                Capture a clear selfie. Your new face will
-                replace the currently registered one after
-                successful verification.
+                Capture a clear selfie. Your new face
+                will replace the currently registered one
+                after successful verification.
               </p>
             </div>
           </div>
@@ -634,22 +740,68 @@ export default function FaceRegistration() {
       )}
 
       <Card>
-        <div className="px-4 py-5 sm:px-6">
+        <div className="p-4 sm:p-6 lg:p-8">
           {!isReviewing ? (
-            <>
-              <FaceRegistrationInstructions />
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+              {/* CAMERA */}
 
-              <div className="mt-6">
-                <FaceRegistrationCamera
-                  onCapture={handleCapture}
-                  onError={handleCameraError}
-                  disabled={isProcessing}
-                />
+              <div className="order-1">
+                <div className="overflow-hidden rounded-3xl">
+                  <FaceRegistrationCamera
+                    onCapture={handleCapture}
+                    onError={handleCameraError}
+                    disabled={isProcessing}
+                  />
+                </div>
               </div>
-            </>
+
+              {/* INSTRUCTIONS */}
+
+              <div className="order-2 lg:pt-2">
+                <div className="mb-5">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Face verification
+                  </p>
+
+                  <h2 className="mt-1 text-xl font-semibold text-slate-900">
+                    Capture your face
+                  </h2>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    Position yourself naturally inside
+                    the frame and capture a clear selfie.
+                  </p>
+                </div>
+
+                <FaceRegistrationInstructions />
+
+                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                  <div className="flex items-start gap-3">
+                    <LockKeyhole
+                      className="mt-0.5 h-5 w-5 shrink-0 text-slate-500"
+                      aria-hidden="true"
+                    />
+
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">
+                        Secure verification
+                      </p>
+
+                      <p className="mt-1 text-xs leading-5 text-slate-500">
+                        Your selfie is verified for face
+                        quality and liveness before it is
+                        registered.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : (
-            <div>
-              <div className="overflow-hidden rounded-2xl bg-slate-100">
+            <div className="mx-auto max-w-2xl">
+              {/* CAPTURED IMAGE */}
+
+              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-100 shadow-sm">
                 <img
                   src={previewUrl!}
                   alt="Captured selfie preview"
@@ -657,14 +809,18 @@ export default function FaceRegistration() {
                 />
               </div>
 
-              <div className="mt-5 text-center">
-                <h2 className="text-lg font-semibold text-slate-900">
+              <div className="mt-6 text-center">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Review
+                </p>
+
+                <h2 className="mt-1 text-xl font-semibold text-slate-900">
                   Review your selfie
                 </h2>
 
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Make sure your face is clearly visible before
-                  continuing.
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                  Make sure your face is clearly visible
+                  before continuing.
                 </p>
               </div>
 
@@ -705,47 +861,6 @@ export default function FaceRegistration() {
           )}
         </div>
       </Card>
-
-      <Card>
-        <div className="flex items-start gap-3 px-4 py-4 sm:px-6">
-          <LockKeyhole
-            className="mt-0.5 h-5 w-5 shrink-0 text-slate-500"
-            aria-hidden="true"
-          />
-
-          <div>
-            <p className="text-sm font-medium text-slate-900">
-              Secure verification
-            </p>
-
-            <p className="mt-1 text-xs leading-5 text-slate-500">
-              Your selfie is verified for face quality and
-              liveness before it is registered.
-            </p>
-          </div>
-        </div>
-      </Card>
-
-      <div className="flex justify-start">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={
-            mode === "update"
-              ? handleCancelUpdate
-              : handleBack
-          }
-        >
-          <ArrowLeft
-            className="mr-2 h-4 w-4"
-            aria-hidden="true"
-          />
-
-          {mode === "update"
-            ? "Cancel Update"
-            : "Back"}
-        </Button>
-      </div>
     </div>
   );
 }
